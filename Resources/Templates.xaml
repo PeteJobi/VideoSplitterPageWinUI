@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    x:Class="VideoSplitterPage.Resources.Templates"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:CommunityToolkit.WinUI.Converters"
+    xmlns:videoSplitterPage="using:VideoSplitterPage">
+
+    <converters:BoolToObjectConverter x:Key="SelectedConverter" FalseValue="{StaticResource SectionTemplateBorder}" TrueValue="DeepSkyBlue" />
+
+    <DataTemplate x:Key="SectionTemplate" x:DataType="videoSplitterPage:SplitRangeModel">
+        <Border BorderBrush="{x:Bind IsSelected, Mode=OneWay, Converter={StaticResource SelectedConverter}}" BorderThickness="3" Height="70" Width="200" Background="Transparent">
+            <Border.ContextFlyout>
+                <MenuFlyout>
+                    <MenuFlyoutItem x:Name="Delete" Icon="Delete" Text="Delete"></MenuFlyoutItem>
+                    <MenuFlyoutItem x:Name="Play" Text="Play section">
+                        <MenuFlyoutItem.Icon>
+                            <PathIcon Data="{StaticResource PlaySectionPathData}"></PathIcon>
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                </MenuFlyout>
+            </Border.ContextFlyout>
+            <RelativePanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <Border CornerRadius="10" Width="50" Height="20" Background="White" HorizontalAlignment="Center" Margin="4"
+                        RelativePanel.AlignBottomWithPanel="True" RelativePanel.AlignHorizontalCenterWithPanel="True">
+                    <TextBlock HorizontalTextAlignment="Center" Text="{x:Bind Duration, Mode=OneWay}" Foreground="Black"/>
+                </Border>
+                <CheckBox IsChecked="{x:Bind IsMultiSelected, Mode=TwoWay}" Margin="4" MinWidth="0" MinHeight="0" Visibility="{Binding Source={StaticResource GlobalBindingProxy}, Path=Data.InMultiSelectMode}"></CheckBox>
+            </RelativePanel>
+        </Border>
+    </DataTemplate>
+</ResourceDictionary>
