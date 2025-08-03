@@ -10,18 +10,6 @@ namespace VideoSplitterPage
 {
     public class SplitMainModel : INotifyPropertyChanged
     {
-        private bool _isplaying;
-        public bool IsPlaying
-        {
-            get => _isplaying;
-            set
-            {
-                if (_isplaying == value) return;
-                _isplaying = value;
-                OnPropertyChanged();
-            }
-        }
-
         private TimeSpan _duration;
         public TimeSpan Duration
         {

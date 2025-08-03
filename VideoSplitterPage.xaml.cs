@@ -35,19 +35,19 @@ namespace VideoSplitter
     {
         private SplitMainModel viewModel;
         private Splitter<SplitRangeModel> splitter;
-        private SplitProcessor splitProcessor;
+        private readonly SplitProcessor splitProcessor;
         private string ffmpegPath, videoPath;
         private readonly ScrollingScrollOptions scrollAnimationDisabled = new(ScrollingAnimationMode.Disabled);
-        private readonly double ProgressMax = 1_000_000;
+        private readonly double progressMax = 1_000_000;
         private string outputFolder;
-        private List<string> outputFolders = [];
+        private readonly List<string> outputFolders = [];
         private string? navigateTo;
         private CancellationTokenSource playSectionTokenSource = new ();
 
         public VideoSplitterPage()
         {
             InitializeComponent();
-            viewModel = new SplitMainModel { SplitModel = new SplitViewModel<SplitRangeModel>{ SplitRanges = new ObservableCollection<SplitRangeModel>() } };
+            viewModel = new SplitMainModel { SplitModel = new SplitViewModel<SplitRangeModel>() };
             splitProcessor = new SplitProcessor();
             viewModel.SplitModel.SplitRanges.CollectionChanged += SplitRangesOnCollectionChanged;
             var bindingProxy = (BindingProxy)Application.Current.Resources["GlobalBindingProxy"];
@@ -63,15 +63,6 @@ namespace VideoSplitter
             VideoName.Text = Path.GetFileName(videoPath);
             VideoPlayer.Source = MediaSource.CreateFromUri(new Uri(videoPath));
             VideoPlayer.MediaPlayer.PlaybackSession.NaturalDurationChanged += PlaybackSessionOnNaturalDurationChanged;
-            VideoPlayer.MediaPlayer.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
-        }
-
-        private void PlaybackSession_PlaybackStateChanged(MediaPlaybackSession sender, object args)
-        {
-            DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, () =>
-            {
-                viewModel.IsPlaying = sender.PlaybackState == MediaPlaybackState.Playing;
-            });
         }
 
         private void PlaybackSessionOnNaturalDurationChanged(MediaPlaybackSession sender, object args)
@@ -90,22 +81,13 @@ namespace VideoSplitter
                 };
                 VideoProgressSlider.SetBinding(Slider.ValueProperty, progressValueBinding);
                 VideoDurationText.Text = $@" / {VideoPlayer.MediaPlayer.PlaybackSession.NaturalDuration:hh\:mm\:ss\.fff}";
-                splitter = new Splitter<SplitRangeModel>(viewModel.SplitModel, SplitterCanvas, VideoPlayer.MediaPlayer, DispatcherQueue, SectionElementSet, ffmpegPath, videoPath);
+                splitter = new Splitter<SplitRangeModel>(viewModel.SplitModel, SplitterCanvas, VideoPlayer.MediaPlayer, SectionElementSet, ffmpegPath, videoPath);
             });
         }
 
         private void PlayPause(object sender, RoutedEventArgs e)
         {
-            if (VideoPlayer.MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing)
-            {
-                VideoPlayer.MediaPlayer.Pause();
-                viewModel.IsPlaying = false;
-            }
-            else
-            {
-                VideoPlayer.MediaPlayer.Play();
-                viewModel.IsPlaying = true;
-            }
+            viewModel.SplitModel.IsPlaying = !viewModel.SplitModel.IsPlaying;
         }
 
         private void SplitClicked(object sender, RoutedEventArgs e)
@@ -253,7 +235,7 @@ namespace VideoSplitter
             var selectedIndex = viewModel.SplitModel.SplitRanges.IndexOf(viewModel.SelectedRange);
             if (selectedIndex <= 0) return;
             viewModel.SplitModel.SplitRanges[selectedIndex - 1].IsSelected = true;
-            VideoPlayer.MediaPlayer.PlaybackSession.Position = viewModel.SelectedRange.Start;
+            viewModel.SplitModel.VideoProgress = viewModel.SelectedRange.Start;
         }
 
         private void NextSectionClicked(object sender, RoutedEventArgs e)
@@ -261,7 +243,7 @@ namespace VideoSplitter
             var selectedIndex = viewModel.SplitModel.SplitRanges.IndexOf(viewModel.SelectedRange);
             if(selectedIndex < 0 || selectedIndex == viewModel.SplitModel.SplitRanges.Count) return;
             viewModel.SplitModel.SplitRanges[selectedIndex + 1].IsSelected = true;
-            VideoPlayer.MediaPlayer.PlaybackSession.Position = viewModel.SelectedRange.Start;
+            viewModel.SplitModel.VideoProgress = viewModel.SelectedRange.Start;
         }
 
         private void DeleteSection(object sender, RoutedEventArgs e)
@@ -377,12 +359,12 @@ namespace VideoSplitter
             {
                 if (isInterval)
                 {
-                    await splitProcessor.IntervalSplit(videoPath, ffmpegPath, interval, ProgressMax, fileProgress,
+                    await splitProcessor.IntervalSplit(videoPath, ffmpegPath, interval, progressMax, fileProgress,
                         valueProgress, SetOutputFolder, ErrorActionFromFfmpeg);
                 }
                 else
                 {
-                    await splitProcessor.SpecificSplit(videoPath, ffmpegPath, rangesToProcess.ToArray(), ProgressMax,
+                    await splitProcessor.SpecificSplit(videoPath, ffmpegPath, rangesToProcess.ToArray(), progressMax,
                         fileProgress, valueProgress, SetOutputFolder, ErrorActionFromFfmpeg);
                 }
 
