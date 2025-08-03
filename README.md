@@ -18,7 +18,7 @@ protected override void OnNavigatedTo(NavigationEventArgs e)
     //splitFolders is sent only if TypeToNavigateTo was specified in SplitterProps.
     if (e.Parameter is List<string> splitFolders)
     {
-        Console.WriteLine($"{splitFolders.Count} files were generated");
+        Console.WriteLine($"{splitFolders.Count} folders were generated");
     }
 }
 ```
