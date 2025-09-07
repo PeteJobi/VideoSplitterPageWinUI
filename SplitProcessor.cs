@@ -14,18 +14,10 @@ namespace VideoSplitterPage
     public class SplitProcessor
     {
         static readonly string[] allowedExts = { ".mkv", ".mp4", ".mp3" };
-        Process? currentProcess;
-        bool hasBeenKilled;
-        bool isPaused;
-        bool isSplitting;
-        string xpathForView;
-        string[] filesCreated = Array.Empty<string>();
-        private int incrementalSplitControlsDisplacement;
-        private int fullSplitControlsDisplacement;
-        private const string FILE_NAME_LONG_ERROR =
+        private Process? currentProcess;
+        private bool hasBeenKilled;
+        private const string FileNameLongError =
             "The source file name is too long. Shorten it to get the total number of characters in the destination directory lower than 256.\n\nDestination directory: ";
-
-
 
         public async Task SpecificSplit(string fileName, string ffmpegPath, SplitRange[] ranges, double progressMax, IProgress<FileProgress> fileProgress, IProgress<ValueProgress> valueProgress, Action<string> setOutputFolder, Action<string> error)
         {
@@ -128,9 +120,9 @@ namespace VideoSplitterPage
             });
         }
 
-        string ExtendedName(string fileName, string extra) => $"{Path.GetFileNameWithoutExtension(fileName)}{extra}{Path.GetExtension(fileName)}";
+        private string ExtendedName(string fileName, string extra) => $"{Path.GetFileNameWithoutExtension(fileName)}{extra}{Path.GetExtension(fileName)}";
 
-        bool CheckNoSpaceDuringBreakMerge(string line, Action<string> error)
+        private bool CheckNoSpaceDuringBreakMerge(string line, Action<string> error)
         {
             if (!line.EndsWith("No space left on device") && !line.EndsWith("I/O error")) return false;
             SuspendProcess(currentProcess);
@@ -138,11 +130,11 @@ namespace VideoSplitterPage
             return true;
         }
 
-        bool FileNameLongErrorSplit(string line, Action<string> error)
+        private static bool FileNameLongErrorSplit(string line, Action<string> error)
         {
             const string noSuchDirectory = ": No such file or directory";
             if (!line.EndsWith(noSuchDirectory)) return false;
-            error(FILE_NAME_LONG_ERROR + line[..^noSuchDirectory.Length]);
+            error(FileNameLongError + line[..^noSuchDirectory.Length]);
             return true;
         }
 
@@ -157,7 +149,6 @@ namespace VideoSplitterPage
                 Directory.Delete(outputFolder, true);
             }
             Directory.CreateDirectory(outputFolder);
-            filesCreated = new[] { outputFolder };
             return outputFolder;
         }
 
@@ -323,13 +314,13 @@ namespace VideoSplitterPage
         }
     }
 
-    public class FileProgress
+    public struct FileProgress
     {
         public string? TotalRangeCount { get; set; }
         public string? CurrentRangeFileName { get; set; }
     }
 
-    public class ValueProgress
+    public struct ValueProgress
     {
         public double OverallProgress { get; set; }
         public double CurrentActionProgress { get; set; }
