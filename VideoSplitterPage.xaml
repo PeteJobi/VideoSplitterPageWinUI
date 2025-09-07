@@ -23,6 +23,25 @@
         <converters:DoubleToObjectConverter x:Key="ZoomInConverter" FalseValue="False" LessThan="99.6" TrueValue="True" />
         <converters:DoubleToObjectConverter x:Key="ZoomOutConverter" FalseValue="False" GreaterThan="0.4" TrueValue="True" />
         <x:String x:Key="SeekerPathData">M0 12A1 1 0 002 12C2.003 11 1.48 11 1.328 9.978S1.097 3.367 1.071 1Q.992.926.923 1C.896 3.375.784 9.031.66 10.001.484 11 0 11-.001 11.983ZM1.469 11.998A.4.4 0 01.505 11.992.4.6 0 011.469 11.998</x:String>
+        <DataTemplate x:Key="IntervalSplitTemplate">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+                    <RadioButton Content="Duration" GroupName="IntervalType" MinWidth="0" Checked="IntervalTypeChecked" IsChecked="True"/>
+                    <RadioButton x:Name="AmountRadioButton" Content="Amount" GroupName="IntervalType" MinWidth="0" Checked="IntervalTypeChecked"/>
+                </StackPanel>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <src:TimespanTextBox x:Name="Duration" VerticalAlignment="Center" NoMask="True" Maximum="{Binding Source={StaticResource GlobalBindingProxy}, Path=Data.Duration}"/>
+                    <NumberBox x:Name="Amount" Value="2" SpinButtonPlacementMode="Compact" Minimum="2" Visibility="Collapsed"/>
+                    <Button ToolTipService.ToolTip="Done" Margin="10,0,0,0" Click="IntervalSplit">
+                        <FontIcon Glyph="&#xE8FB;" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
     </Page.Resources>
 
     <Grid>
@@ -75,10 +94,10 @@
             </Grid.ColumnDefinitions>
             <src:TimespanTextBox Value="{x:Bind viewModel.SplitModel.VideoProgress, Mode=TwoWay}" Maximum="{x:Bind viewModel.Duration, Mode=OneWay}" Margin="10,0,0,0" VerticalAlignment="Center"/>
             <TextBlock Grid.Column="1" Name="VideoDurationText" VerticalAlignment="Center"/>
-            <Button Grid.Column="2" Margin="10,0,4,0" Click="StepBackClicked">
+            <Button Grid.Column="2" Margin="10,0,4,0" ToolTipService.ToolTip="Previous frame" Click="StepBackClicked">
                 <FontIcon Glyph="&#xE973;" />
             </Button>
-            <Button Grid.Column="3" Click="StepForwardClicked">
+            <Button Grid.Column="3" ToolTipService.ToolTip="Next frame" Click="StepForwardClicked">
                 <FontIcon Glyph="&#xE974;" />
             </Button>
             <Grid Grid.Column="4">
@@ -162,7 +181,7 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <TextBlock Name="VideoName" Style="{StaticResource TitleTextBlockStyle}" Margin="10"/>
+            <TextBlock Name="VideoName" Style="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,10"/>
             <Button Grid.Row="1" HorizontalAlignment="Center" Click="GoBack">
                 <StackPanel Orientation="Horizontal">
                     <FontIcon Glyph="&#xE72B;" Margin="0,0,10,0" />
@@ -200,12 +219,7 @@
                                     <LineBreak/>
                                     <Run>This will delete any existing ranges.</Run>
                                 </TextBlock>
-                                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <src:TimespanTextBox x:Name="Interval" VerticalAlignment="Center" NoMask="True" Maximum="{Binding Source={StaticResource GlobalBindingProxy}, Path=Data.Duration}"/>
-                                    <Button ToolTipService.ToolTip="Done" Margin="10,0,0,0" Click="IntervalSplit">
-                                        <FontIcon Glyph="&#xE8FB;" />
-                                    </Button>
-                                </StackPanel>
+                                <ContentPresenter Grid.Row="1" HorizontalAlignment="Center" ContentTemplate="{StaticResource IntervalSplitTemplate}"/>
                             </Grid>
                         </Flyout>
                     </AppBarButton.Flyout>
@@ -267,13 +281,33 @@
                             <TextBlock Grid.Column="1" Text="to" VerticalAlignment="Center" Margin="10,0"/>
                             <src:TimespanTextBox Grid.Column="2" Value="{x:Bind End, Mode=TwoWay}" VerticalAlignment="Center" HorizontalAlignment="Left"
                                                  Maximum="{Binding Source={StaticResource GlobalBindingProxy}, Path=Data.Duration}"/>
-                            <Button Grid.Column="3" Margin="10,0" ToolTipService.ToolTip="Delete section" Click="DeleteSection">
-                                <SymbolIcon Symbol="Delete" />
+                            <Button Grid.Column="3" Margin="10,0" ToolTipService.ToolTip="Interval split">
+                                <Button.Flyout>
+                                    <Flyout x:Name="RangeIntervalFlyout">
+                                        <Grid RowSpacing="10">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <TextBlock Style="{ThemeResource BaseTextBlockStyle}" TextWrapping="Wrap">Split this range into equal intervals</TextBlock>
+                                            <ContentPresenter Grid.Row="1" HorizontalAlignment="Center" ContentTemplate="{StaticResource IntervalSplitTemplate}" Content="{Binding}"/>
+                                        </Grid>
+                                    </Flyout>
+                                </Button.Flyout>
+                                <FontIcon Glyph="&#xE8C6;" />
                             </Button>
-                            <Button Grid.Column="4" ToolTipService.ToolTip="Play section" Margin="0,0,10,0" Click="PlaySection">
-                                <Viewbox Height="21">
-                                    <PathIcon Data="{StaticResource PlaySectionPathData}"></PathIcon>
-                                </Viewbox>
+                            <Button Grid.Column="4" Margin="0,0,10,0" ToolTipService.ToolTip="More">
+                                <Button.Flyout>
+                                    <MenuFlyout>
+                                        <MenuFlyoutItem Text="Play section" Click="PlaySection">
+                                            <MenuFlyoutItem.Icon>
+                                                <PathIcon Data="{StaticResource PlaySectionPathData}"></PathIcon>
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutItem Text="Delete" Icon="Delete" Click="DeleteSection"/>
+                                    </MenuFlyout>
+                                </Button.Flyout>
+                                <FontIcon Glyph="&#xE712;"/>
                             </Button>
                         </Grid>
                     </DataTemplate>

@@ -1,3 +1,4 @@
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -9,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -21,7 +23,7 @@ using Windows.Foundation.Collections;
 using Windows.Media;
 using Windows.Media.Core;
 using Windows.Media.Playback;
-using Microsoft.UI.Dispatching;
+using VideoSplitterPage.Controls;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -280,9 +282,38 @@ namespace VideoSplitter
 
         private void IntervalSplit(object sender, RoutedEventArgs e)
         {
-            if (Interval.Value == TimeSpan.Zero) return;
-            splitter.SplitIntervals(Interval.Value);
-            IntervalFlyout.Hide();
+            var button = (Button)sender;
+            var range = button.DataContext as SplitRangeModel;
+            var container = button.Parent;
+            var grid = (Grid)((FrameworkElement)container).Parent;
+            var duration = (TimespanTextBox)grid.FindName("Duration");
+            var amount = (NumberBox)grid.FindName("Amount");
+            var amountRadio = (RadioButton)grid.FindName("AmountRadioButton");
+            if (amountRadio.IsChecked == true)
+            {
+                if(amount.Value == 0) return;
+                var chunkDuration = (range != null ? range.End - range.Start : viewModel.Duration) / amount.Value;
+                splitter.SplitIntervals(chunkDuration, range);
+            }else splitter.SplitIntervals(duration.Value, range);
+            while (container != null && container is not FlyoutPresenter)
+            {
+                container = VisualTreeHelper.GetParent(container);
+            }
+            var flyoutPresenter = (FlyoutPresenter)container;
+            var popup = flyoutPresenter.Parent as Popup;
+            popup.IsOpen = false;
+        }
+
+        private void IntervalTypeChecked(object sender, RoutedEventArgs e)
+        {
+            var radio = (RadioButton)sender;
+            if (radio.Parent == null) return;
+            var grid = (Grid)((FrameworkElement)radio.Parent).Parent;
+            var duration = (TimespanTextBox)grid.FindName("Duration");
+            var amount = (NumberBox)grid.FindName("Amount");
+            var amountRadio = (RadioButton)grid.FindName("AmountRadioButton");
+            duration.Visibility = amountRadio.IsChecked == true ? Visibility.Collapsed : Visibility.Visible;
+            amount.Visibility = amountRadio.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void SelectDeselectAll(object sender, RoutedEventArgs e)
