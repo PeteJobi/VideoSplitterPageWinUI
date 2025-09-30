@@ -9,11 +9,11 @@
     <Import_RootNamespace>VideoSplitterPage</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Controls\TimespanTextBox.xaml.cs">
-      <DependentUpon>TimespanTextBox.xaml</DependentUpon>
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\SplitTimespanTextBox.xaml.cs">
+      <DependentUpon>SplitTimespanTextBox.xaml</DependentUpon>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)Resources\Templates.xaml.cs">
-      <DependentUpon>Templates.xaml</DependentUpon>
+    <Compile Include="$(MSBuildThisFileDirectory)Resources\SplitTemplates.xaml.cs">
+      <DependentUpon>SplitTemplates.xaml</DependentUpon>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)SplitMainModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SplitProcessor.cs" />
@@ -22,17 +22,17 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="$(MSBuildThisFileDirectory)Controls\TimespanTextBox.xaml">
+    <Page Include="$(MSBuildThisFileDirectory)Controls\SplitTimespanTextBox.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="$(MSBuildThisFileDirectory)Resources\Dictionary.xaml">
+    <Page Include="$(MSBuildThisFileDirectory)Resources\SplitDictionary.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="$(MSBuildThisFileDirectory)Resources\Templates.xaml">
+    <Page Include="$(MSBuildThisFileDirectory)Resources\SplitTemplates.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
