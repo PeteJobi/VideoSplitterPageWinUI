@@ -42,7 +42,7 @@ namespace VideoSplitter
         private readonly ScrollingScrollOptions scrollAnimationDisabled = new(ScrollingAnimationMode.Disabled);
         private readonly double progressMax = 1_000_000;
         private string outputFolder;
-        private readonly List<string> outputFolders = [];
+        private List<string> outputFiles = [];
         private string? navigateTo;
         private CancellationTokenSource playSectionTokenSource = new ();
 
@@ -410,7 +410,7 @@ namespace VideoSplitter
 
                 viewModel.State = OperationState.AfterOperation;
                 CurrentRangeFileName.Text = "Done";
-                outputFolders.Add(outputFolder);
+                outputFiles = splitProcessor.GetFilePathsFromFolder(outputFolder);
             }
             catch (Exception ex)
             {
@@ -498,7 +498,7 @@ namespace VideoSplitter
             VideoPlayer.MediaPlayer.Pause();
             playSectionTokenSource.Cancel();
             if (navigateTo == null) Frame.GoBack();
-            else Frame.NavigateToType(Type.GetType(navigateTo), outputFolders, new FrameNavigationOptions { IsNavigationStackEnabled = false });
+            else Frame.NavigateToType(Type.GetType(navigateTo), outputFiles, new FrameNavigationOptions { IsNavigationStackEnabled = false });
         }
     }
 

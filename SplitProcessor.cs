@@ -96,6 +96,13 @@ namespace VideoSplitterPage
             AllDone(totalSegments, progressMax, fileProgress, valueProgress);
         }
 
+        public List<string> GetFilePathsFromFolder(string folderPath)
+        {
+            if (!Directory.Exists(folderPath)) throw new DirectoryNotFoundException("The specified folder path does not exist.");
+            var files = Directory.GetFiles(folderPath);
+            return files.ToList();
+        }
+
         void IncrementSpecificSplitProgress(TimeSpan segmentDuration, TimeSpan currentTime, TimeSpan elapsedDuration, TimeSpan totalDuration, double max, IProgress<ValueProgress> progress)
         {
             var fraction = currentTime / segmentDuration;
