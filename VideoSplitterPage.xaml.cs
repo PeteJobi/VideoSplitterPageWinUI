@@ -385,6 +385,7 @@ namespace VideoSplitter
             var failed = false;
             string? errorMessage = null;
 
+            outputFiles = null;
             var (isInterval, interval) = IsIntervalSplit(rangesToProcess);
             try
             {
@@ -494,7 +495,7 @@ namespace VideoSplitter
         private void GoBack(object sender, RoutedEventArgs e)
         {
             _ = splitProcessor.Cancel(outputFolder);
-            _ = splitter.Dispose();
+            _ = splitter?.Dispose();
             VideoPlayer.MediaPlayer.Pause();
             playSectionTokenSource.Cancel();
             if (navigateTo == null) Frame.GoBack();
