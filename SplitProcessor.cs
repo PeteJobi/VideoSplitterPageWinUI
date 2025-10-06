@@ -101,8 +101,8 @@ namespace VideoSplitterPage
             var fraction = currentTime / segmentDuration;
             progress.Report(new ValueProgress
             {
-                OverallProgress = Math.Max(0, Math.Min((int)((currentTime + elapsedDuration) / totalDuration * max), max)),
-                CurrentActionProgress = Math.Max(0, Math.Min((int)(fraction * max), max)),
+                OverallProgress = Math.Max(0, Math.Min((currentTime + elapsedDuration) / totalDuration * max, max)),
+                CurrentActionProgress = Math.Max(0, Math.Min(fraction * max, max)),
                 CurrentActionProgressText = $"{Math.Round(fraction * 100, 2)} %"
             });
         }
@@ -255,6 +255,7 @@ namespace VideoSplitterPage
             currentProcess = ffmpeg;
             await ffmpeg.WaitForExitAsync();
             ffmpeg.Dispose();
+            currentProcess = null;
         }
 
         [Flags]
