@@ -9,9 +9,6 @@
     <Import_RootNamespace>VideoSplitterPage</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Controls\SplitTimespanTextBox.xaml.cs">
-      <DependentUpon>SplitTimespanTextBox.xaml</DependentUpon>
-    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Resources\SplitTemplates.xaml.cs">
       <DependentUpon>SplitTemplates.xaml</DependentUpon>
     </Compile>
@@ -22,11 +19,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="$(MSBuildThisFileDirectory)Controls\SplitTimespanTextBox.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="$(MSBuildThisFileDirectory)Resources\SplitDictionary.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
