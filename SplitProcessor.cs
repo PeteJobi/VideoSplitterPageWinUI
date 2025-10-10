@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using VideoSplitter;
+using VideoSplitterBase;
 
 namespace VideoSplitterPage
 {
@@ -101,6 +101,12 @@ namespace VideoSplitterPage
             if (!Directory.Exists(folderPath)) throw new DirectoryNotFoundException("The specified folder path does not exist.");
             var files = Directory.GetFiles(folderPath);
             return files.ToList();
+        }
+
+        public bool IsAudio(string mediaPath)
+        {
+            var ext = Path.GetExtension(mediaPath).ToLower();
+            return ext is ".mp3" or ".wav" or ".flac" or ".aac" or ".m4a" or ".wma";
         }
 
         void IncrementSpecificSplitProgress(TimeSpan segmentDuration, TimeSpan currentTime, TimeSpan elapsedDuration, TimeSpan totalDuration, double max, IProgress<ValueProgress> progress)

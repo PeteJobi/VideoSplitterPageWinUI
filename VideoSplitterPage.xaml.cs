@@ -62,6 +62,7 @@ namespace VideoSplitter
             ffmpegPath = props.FfmpegPath;
             videoPath = props.VideoPath;
             navigateTo = props.TypeToNavigateTo;
+            viewModel.IsAudio = splitProcessor.IsAudio(videoPath);
             VideoName.Text = Path.GetFileName(videoPath);
             VideoPlayer.Source = MediaSource.CreateFromUri(new Uri(videoPath));
             VideoPlayer.MediaPlayer.PlaybackSession.NaturalDurationChanged += PlaybackSessionOnNaturalDurationChanged;
