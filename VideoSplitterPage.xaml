@@ -33,7 +33,7 @@
                     <RadioButton x:Name="AmountRadioButton" Content="Amount" GroupName="IntervalType" MinWidth="0" Checked="IntervalTypeChecked"/>
                 </StackPanel>
                 <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                    <timeline:TimespanTextBox x:Name="Duration" VerticalAlignment="Center" NoMask="True" Maximum="{Binding Source={StaticResource GlobalBindingProxy}, Path=Data.Duration}"/>
+                    <timeline:TimeSpanTextBox x:Name="Duration" VerticalAlignment="Center" Maximum="{Binding Source={StaticResource GlobalBindingProxy}, Path=Data.Duration}"/>
                     <NumberBox x:Name="Amount" Value="2" SpinButtonPlacementMode="Compact" Minimum="2" Visibility="Collapsed"/>
                     <Button ToolTipService.ToolTip="Done" Margin="10,0,0,0" Click="IntervalSplit">
                         <FontIcon Glyph="&#xE8FB;" />
@@ -63,9 +63,9 @@
             <Grid Background="Black" Visibility="{x:Bind viewModel.IsAudio}">
                 <FontIcon Glyph="&#xE8D6;" Foreground="White" FontSize="100"/>
             </Grid>
-            <timeline:VideoControls Grid.Row="1" MediaPlayer="{x:Bind VideoPlayer.MediaPlayer}" HideTimes="True" HideMute="True" Spacing="0" Margin="10,0,0,0">
+            <timeline:VideoControls Grid.Row="1" MediaPlayer="{x:Bind VideoPlayer.MediaPlayer}" HideTimes="True" Margin="10,0,0,0">
                 <timeline:VideoControls.BetweenPlayAndProgress>
-                    <Button ToolTipService.ToolTip="Play section" Click="PlaySelectedSection" Margin="4,0"
+                    <Button ToolTipService.ToolTip="Play section" Click="PlaySelectedSection"
                             IsEnabled="{x:Bind viewModel.SelectedRange, Mode=OneWay, Converter={StaticResource EmptyObjectToObjectConverter}}">
                         <Viewbox Height="21">
                             <PathIcon Data="{StaticResource PlaySectionPathData}"/>
@@ -86,7 +86,7 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <timeline:TimespanTextBox Value="{x:Bind viewModel.SplitModel.Progress, Mode=TwoWay}" Maximum="{x:Bind viewModel.Duration, Mode=OneWay}"
+            <timeline:TimeSpanTextBox Value="{x:Bind viewModel.SplitModel.Progress, Mode=TwoWay}" Maximum="{x:Bind viewModel.Duration, Mode=OneWay}"
                                       IgnoreMaximumIfZero="True" Margin="10,0,0,0" VerticalAlignment="Center"/>
             <TextBlock Grid.Column="1" VerticalAlignment="Center">
                 <Run Text=" / "/>
@@ -193,9 +193,9 @@
                     <AppBarButton.Flyout>
                         <Flyout x:Name="AddFlyout">
                             <StackPanel Orientation="Horizontal">
-                                <timeline:TimespanTextBox x:Name="AddStart" NoMask="True" VerticalAlignment="Center" Maximum="{Binding Source={StaticResource GlobalBindingProxy}, Path=Data.Duration}"/>
+                                <timeline:TimeSpanTextBox x:Name="AddStart" VerticalAlignment="Center" Maximum="{Binding Source={StaticResource GlobalBindingProxy}, Path=Data.Duration}"/>
                                 <TextBlock Text="to" VerticalAlignment="Center" Margin="10,0"/>
-                                <timeline:TimespanTextBox x:Name="AddEnd" NoMask="True" VerticalAlignment="Center" Maximum="{Binding Source={StaticResource GlobalBindingProxy}, Path=Data.Duration}"/>
+                                <timeline:TimeSpanTextBox x:Name="AddEnd" VerticalAlignment="Center" Maximum="{Binding Source={StaticResource GlobalBindingProxy}, Path=Data.Duration}"/>
                                 <Button ToolTipService.ToolTip="Done" Margin="10,0,0,0" Click="AddRange">
                                     <FontIcon Glyph="&#xE8FB;" />
                                 </Button>
@@ -277,9 +277,9 @@
                                 <ColumnDefinition Width="Auto"></ColumnDefinition>
                                 <ColumnDefinition Width="Auto"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
-                            <timeline:TimespanTextBox Value="{x:Bind Start, Mode=TwoWay}" VerticalAlignment="Center" Maximum="{Binding Source={StaticResource GlobalBindingProxy}, Path=Data.Duration}"/>
+                            <timeline:TimeSpanTextBox Value="{x:Bind Start, Mode=TwoWay}" VerticalAlignment="Center" Maximum="{Binding Source={StaticResource GlobalBindingProxy}, Path=Data.Duration}"/>
                             <TextBlock Grid.Column="1" Text="to" VerticalAlignment="Center" Margin="10,0"/>
-                            <timeline:TimespanTextBox Grid.Column="2" Value="{x:Bind End, Mode=TwoWay}" VerticalAlignment="Center" HorizontalAlignment="Left"
+                            <timeline:TimeSpanTextBox Grid.Column="2" Value="{x:Bind End, Mode=TwoWay}" VerticalAlignment="Center" HorizontalAlignment="Left"
                                                  Maximum="{Binding Source={StaticResource GlobalBindingProxy}, Path=Data.Duration}"/>
                             <Button Grid.Column="3" Margin="10,0" ToolTipService.ToolTip="Interval split">
                                 <Button.Flyout>

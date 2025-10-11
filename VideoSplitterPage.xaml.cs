@@ -274,7 +274,7 @@ namespace VideoSplitter
             var range = button.DataContext as SplitRangeModel;
             var container = button.Parent;
             var grid = (Grid)((FrameworkElement)container).Parent;
-            var duration = (TimespanTextBox)grid.FindName("Duration");
+            var duration = (TimeSpanTextBox)grid.FindName("Duration");
             var amount = (NumberBox)grid.FindName("Amount");
             var amountRadio = (RadioButton)grid.FindName("AmountRadioButton");
             if (amountRadio.IsChecked == true)
@@ -297,7 +297,7 @@ namespace VideoSplitter
             var radio = (RadioButton)sender;
             if (radio.Parent == null) return;
             var grid = (Grid)((FrameworkElement)radio.Parent).Parent;
-            var duration = (TimespanTextBox)grid.FindName("Duration");
+            var duration = (TimeSpanTextBox)grid.FindName("Duration");
             var amount = (NumberBox)grid.FindName("Amount");
             var amountRadio = (RadioButton)grid.FindName("AmountRadioButton");
             duration.Visibility = amountRadio.IsChecked == true ? Visibility.Collapsed : Visibility.Visible;
