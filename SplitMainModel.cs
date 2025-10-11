@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using VideoSplitter;
+using VideoSplitterBase;
 
 namespace VideoSplitterPage
 {
@@ -14,86 +15,56 @@ namespace VideoSplitterPage
         public TimeSpan Duration
         {
             get => _duration;
-            set
-            {
-                if (_duration == value) return;
-                _duration = value;
-                OnPropertyChanged();
-            }
+            set => SetProperty(ref _duration, value);
         }
 
         private bool _inmultiselectmode;
         public bool InMultiSelectMode
         {
             get => _inmultiselectmode;
-            set
-            {
-                if (_inmultiselectmode == value) return;
-                _inmultiselectmode = value;
-                OnPropertyChanged();
-            }
+            set => SetProperty(ref _inmultiselectmode, value);
         }
 
         private SplitRangeModel? _selectedrange;
         public SplitRangeModel? SelectedRange
         {
             get => _selectedrange;
-            set
-            {
-                if (_selectedrange != value)
-                {
-                    _selectedrange = value;
-                    OnPropertyChanged();
-                }
-                OnPropertyChanged(nameof(HasMoreBeforeSelected));
-                OnPropertyChanged(nameof(HasMoreAfterSelected));
-            }
+            set => SetProperty(ref _selectedrange, value, alsoNotify: [nameof(HasMoreBeforeSelected), nameof(HasMoreAfterSelected)]);
         }
 
         private bool _rangesavailable;
         public bool RangesAvailable
         {
             get => _rangesavailable;
-            set
-            {
-                _rangesavailable = value;
-                OnPropertyChanged();
-            }
+            set => SetProperty(ref _rangesavailable, value);
         }
 
         private bool _allareselected;
         public bool AllAreSelected
         {
             get => _allareselected;
-            set
-            {
-                _allareselected = value;
-                OnPropertyChanged();
-            }
+            set => SetProperty(ref _allareselected, value);
         }
 
         private OperationState _state;
         public OperationState State
         {
             get => _state;
-            set
-            {
-                _state = value;
-                OnPropertyChanged(nameof(BeforeOperation));
-                OnPropertyChanged(nameof(DuringOperation));
-                OnPropertyChanged(nameof(AfterOperation));
-            }
+            set => SetProperty(ref _state, value, alsoNotify: [nameof(BeforeOperation), nameof(DuringOperation), nameof(AfterOperation)]);
         }
 
         private bool _processpaused;
         public bool ProcessPaused
         {
             get => _processpaused;
-            set
-            {
-                _processpaused = value;
-                OnPropertyChanged();
-            }
+            set => SetProperty(ref _processpaused, value);
+        }
+
+        private bool _isaudio;
+        public bool IsAudio
+        {
+            get => _isaudio;
+            set => SetProperty(ref _isaudio, value);
         }
 
         public bool HasMoreBeforeSelected => SelectedRange != null && SplitModel.SplitRanges.Any(r => r.Start < SelectedRange.Start);
@@ -102,12 +73,18 @@ namespace VideoSplitterPage
         public bool DuringOperation => State == OperationState.DuringOperation;
         public bool AfterOperation => State == OperationState.AfterOperation;
 
-        public SplitViewModel<SplitRangeModel> SplitModel { get; set; }
+        public SplitViewModel<SplitRangeModel> SplitModel { get; set; } = new();
 
         public event PropertyChangedEventHandler? PropertyChanged;
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null, params string[] alsoNotify)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+            field = value;
+            OnPropertyChanged(propertyName);
+            foreach (var dep in alsoNotify) OnPropertyChanged(dep);
+            return true;
         }
     }
 

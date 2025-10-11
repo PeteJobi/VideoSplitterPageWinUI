@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using VideoSplitter;
+using VideoSplitterBase;
 
 namespace VideoSplitterPage
 {
@@ -103,13 +103,19 @@ namespace VideoSplitterPage
             return files.ToList();
         }
 
+        public bool IsAudio(string mediaPath)
+        {
+            var ext = Path.GetExtension(mediaPath).ToLower();
+            return ext is ".mp3" or ".wav" or ".flac" or ".aac" or ".m4a" or ".wma";
+        }
+
         void IncrementSpecificSplitProgress(TimeSpan segmentDuration, TimeSpan currentTime, TimeSpan elapsedDuration, TimeSpan totalDuration, double max, IProgress<ValueProgress> progress)
         {
             var fraction = currentTime / segmentDuration;
             progress.Report(new ValueProgress
             {
-                OverallProgress = Math.Max(0, Math.Min((int)((currentTime + elapsedDuration) / totalDuration * max), max)),
-                CurrentActionProgress = Math.Max(0, Math.Min((int)(fraction * max), max)),
+                OverallProgress = Math.Max(0, Math.Min((currentTime + elapsedDuration) / totalDuration * max, max)),
+                CurrentActionProgress = Math.Max(0, Math.Min(fraction * max, max)),
                 CurrentActionProgressText = $"{Math.Round(fraction * 100, 2)} %"
             });
         }
@@ -262,6 +268,7 @@ namespace VideoSplitterPage
             currentProcess = ffmpeg;
             await ffmpeg.WaitForExitAsync();
             ffmpeg.Dispose();
+            currentProcess = null;
         }
 
         [Flags]

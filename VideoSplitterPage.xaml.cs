@@ -23,7 +23,8 @@ using Windows.Foundation.Collections;
 using Windows.Media;
 using Windows.Media.Core;
 using Windows.Media.Playback;
-using VideoSplitterPage.Controls;
+using Timeline;
+using VideoSplitterBase;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -35,11 +36,10 @@ namespace VideoSplitter
     /// </summary>
     public sealed partial class VideoSplitterPage : Page
     {
-        private SplitMainModel viewModel;
-        private Splitter<SplitRangeModel> splitter;
+        private SplitMainModel viewModel = new();
+        private MediaSplitter<SplitRangeModel> splitter;
         private readonly SplitProcessor splitProcessor;
         private string ffmpegPath, videoPath;
-        private readonly ScrollingScrollOptions scrollAnimationDisabled = new(ScrollingAnimationMode.Disabled);
         private readonly double progressMax = 1_000_000;
         private string outputFolder;
         private List<string> outputFiles = [];
@@ -49,7 +49,6 @@ namespace VideoSplitter
         public VideoSplitterPage()
         {
             InitializeComponent();
-            viewModel = new SplitMainModel { SplitModel = new SplitViewModel<SplitRangeModel>() };
             splitProcessor = new SplitProcessor();
             viewModel.SplitModel.SplitRanges.CollectionChanged += SplitRangesOnCollectionChanged;
             var bindingProxy = (BindingProxy)Application.Current.Resources["GlobalBindingProxy"];
@@ -62,34 +61,22 @@ namespace VideoSplitter
             ffmpegPath = props.FfmpegPath;
             videoPath = props.VideoPath;
             navigateTo = props.TypeToNavigateTo;
+            viewModel.IsAudio = splitProcessor.IsAudio(videoPath);
             VideoName.Text = Path.GetFileName(videoPath);
             VideoPlayer.Source = MediaSource.CreateFromUri(new Uri(videoPath));
-            VideoPlayer.MediaPlayer.PlaybackSession.NaturalDurationChanged += PlaybackSessionOnNaturalDurationChanged;
         }
 
-        private void PlaybackSessionOnNaturalDurationChanged(MediaPlaybackSession sender, object args)
+        private void VideoSplitterPage_OnLoaded(object sender, RoutedEventArgs e)
         {
-            DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, () =>
+            viewModel.SplitModel.PropertyChanged += (s, e) =>
             {
-                viewModel.Duration = sender.NaturalDuration;
-                VideoProgressSlider.Maximum = sender.NaturalDuration.TotalSeconds;
-                VideoProgressSlider.Value = 0;
-                var progressValueBinding = new Binding
+                if (e.PropertyName == nameof(SplitViewModel.Duration))
                 {
-                    Path = new PropertyPath("SplitModel.VideoProgress"),
-                    Source = viewModel,
-                    Converter = new VideoProgressValueConverter { Duration = viewModel.Duration },
-                    Mode = BindingMode.TwoWay
-                };
-                VideoProgressSlider.SetBinding(Slider.ValueProperty, progressValueBinding);
-                VideoDurationText.Text = $@" / {VideoPlayer.MediaPlayer.PlaybackSession.NaturalDuration:hh\:mm\:ss\.fff}";
-                splitter = new Splitter<SplitRangeModel>(viewModel.SplitModel, SplitterCanvas, VideoPlayer.MediaPlayer, SectionElementSet, ffmpegPath, videoPath);
-            });
-        }
-
-        private void PlayPause(object sender, RoutedEventArgs e)
-        {
-            viewModel.SplitModel.IsPlaying = !viewModel.SplitModel.IsPlaying;
+                    viewModel.Duration = viewModel.SplitModel.Duration;
+                }
+            };
+            splitter = new MediaSplitter<SplitRangeModel>(viewModel.SplitModel, SplitterCanvas, VideoPlayer.MediaPlayer, SectionElementSet,
+                viewModel.IsAudio ? null : ffmpegPath, videoPath);
         }
 
         private void SplitClicked(object sender, RoutedEventArgs e)
@@ -99,6 +86,7 @@ namespace VideoSplitter
 
         private void ScaleTimelineDown(object sender, RoutedEventArgs e) => TimelineScaleSlider.Value -= 0.25;
         private void ScaleTimelineUp(object sender, RoutedEventArgs e) => TimelineScaleSlider.Value += 0.25;
+        private void FitTimeLineToView(object sender, RoutedEventArgs e) => splitter.ResetScale();
 
         private void SplitRangesOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
@@ -128,7 +116,7 @@ namespace VideoSplitter
             if (!viewModel.InMultiSelectMode) RangeListView.SelectedItem = viewModel.SelectedRange;
         }
 
-        private void Range_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void Range_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             switch (e.PropertyName)
             {
@@ -237,7 +225,7 @@ namespace VideoSplitter
             var selectedIndex = viewModel.SplitModel.SplitRanges.IndexOf(viewModel.SelectedRange);
             if (selectedIndex <= 0) return;
             viewModel.SplitModel.SplitRanges[selectedIndex - 1].IsSelected = true;
-            viewModel.SplitModel.VideoProgress = viewModel.SelectedRange.Start;
+            viewModel.SplitModel.Progress = viewModel.SelectedRange.Start;
         }
 
         private void NextSectionClicked(object sender, RoutedEventArgs e)
@@ -245,7 +233,7 @@ namespace VideoSplitter
             var selectedIndex = viewModel.SplitModel.SplitRanges.IndexOf(viewModel.SelectedRange);
             if(selectedIndex < 0 || selectedIndex == viewModel.SplitModel.SplitRanges.Count) return;
             viewModel.SplitModel.SplitRanges[selectedIndex + 1].IsSelected = true;
-            viewModel.SplitModel.VideoProgress = viewModel.SelectedRange.Start;
+            viewModel.SplitModel.Progress = viewModel.SelectedRange.Start;
         }
 
         private void DeleteSection(object sender, RoutedEventArgs e)
@@ -286,7 +274,7 @@ namespace VideoSplitter
             var range = button.DataContext as SplitRangeModel;
             var container = button.Parent;
             var grid = (Grid)((FrameworkElement)container).Parent;
-            var duration = (TimespanTextBox)grid.FindName("Duration");
+            var duration = (TimeSpanTextBox)grid.FindName("Duration");
             var amount = (NumberBox)grid.FindName("Amount");
             var amountRadio = (RadioButton)grid.FindName("AmountRadioButton");
             if (amountRadio.IsChecked == true)
@@ -309,7 +297,7 @@ namespace VideoSplitter
             var radio = (RadioButton)sender;
             if (radio.Parent == null) return;
             var grid = (Grid)((FrameworkElement)radio.Parent).Parent;
-            var duration = (TimespanTextBox)grid.FindName("Duration");
+            var duration = (TimeSpanTextBox)grid.FindName("Duration");
             var amount = (NumberBox)grid.FindName("Amount");
             var amountRadio = (RadioButton)grid.FindName("AmountRadioButton");
             duration.Visibility = amountRadio.IsChecked == true ? Visibility.Collapsed : Visibility.Visible;
@@ -342,24 +330,6 @@ namespace VideoSplitter
         {
             splitter.JoinSections(viewModel.SplitModel.SplitRanges.Where(r => r.IsMultiSelected).ToArray());
             JoinFlyout.Hide();
-        }
-
-        private void ScrollView_OnPointerWheelChanged(object sender, PointerRoutedEventArgs e)
-        {
-            var wheelDelta = e.GetCurrentPoint(ScrollView).Properties.MouseWheelDelta;
-            var scrollAmount = wheelDelta * -1;
-            ScrollView.ScrollBy(scrollAmount, 0, scrollAnimationDisabled);
-            e.Handled = true;
-        }
-
-        private void ScrollView_OnViewChanged(ScrollView sender, object args)
-        {
-            var offset = ScrollView.HorizontalOffset;
-            var snappedOffset = Math.Round(offset);
-            if (Math.Abs(offset - snappedOffset) > 0.01)
-            {
-                ScrollView.ScrollTo(snappedOffset, 0, scrollAnimationDisabled);
-            }
         }
 
         private async void ProcessSplit(object sender, RoutedEventArgs e)
