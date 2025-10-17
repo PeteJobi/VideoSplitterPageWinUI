@@ -41,7 +41,7 @@ namespace VideoSplitter
         private MediaSplitter<SplitRangeModel> splitter;
         private readonly SplitProcessor splitProcessor;
         private string ffmpegPath, videoPath;
-        private readonly double progressMax = 1_000_000;
+        private readonly double progressMax = 100;
         private string outputFolder;
         private List<string> outputFiles = [];
         private string? navigateTo;
@@ -361,12 +361,12 @@ namespace VideoSplitter
             {
                 if (isInterval)
                 {
-                    await splitProcessor.IntervalSplit(videoPath, ffmpegPath, interval, progressMax, fileProgress,
+                    await splitProcessor.IntervalSplit(videoPath, ffmpegPath, interval, fileProgress,
                         valueProgress, SetOutputFolder, ErrorActionFromFfmpeg);
                 }
                 else
                 {
-                    await splitProcessor.SpecificSplit(videoPath, ffmpegPath, rangesToProcess.ToArray(), progressMax,
+                    await splitProcessor.SpecificSplit(videoPath, ffmpegPath, rangesToProcess.ToArray(),
                         fileProgress, valueProgress, SetOutputFolder, ErrorActionFromFfmpeg);
                 }
 
