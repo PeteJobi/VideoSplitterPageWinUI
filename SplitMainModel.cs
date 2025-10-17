@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using VideoSplitter;
 using VideoSplitterBase;
+using WinUIShared.Enums;
 
 namespace VideoSplitterPage
 {
@@ -113,9 +114,5 @@ namespace VideoSplitterPage
                 OnPropertyChanged();
             }
         }
-    }
-    public enum OperationState
-    {
-        BeforeOperation, DuringOperation, AfterOperation
     }
 }

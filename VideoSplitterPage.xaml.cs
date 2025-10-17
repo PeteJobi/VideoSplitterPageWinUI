@@ -17,14 +17,15 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
+using Timeline;
+using VideoSplitterBase;
 using VideoSplitterPage;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Media;
 using Windows.Media.Core;
 using Windows.Media.Playback;
-using Timeline;
-using VideoSplitterBase;
+using WinUIShared.Enums;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -342,15 +343,15 @@ namespace VideoSplitter
 
             var fileProgress = new Progress<FileProgress>(progress =>
             {
-                if (progress.TotalRangeCount != null) TotalRangeCount.Text = progress.TotalRangeCount;
+                if (progress.TotalRangeCount != null) ProcessProgress.LeftTextPrimary = progress.TotalRangeCount;
                 if (progress.CurrentRangeFileName != null)
-                    CurrentRangeFileName.Text = progress.CurrentRangeFileName;
+                    ProcessProgress.RightTextPrimary = progress.CurrentRangeFileName;
             });
             var valueProgress = new Progress<ValueProgress>(progress =>
             {
-                OverallSplitProgress.Value = progress.OverallProgress;
-                CurrentSplitProgress.Value = progress.CurrentActionProgress;
-                CurrentSplitProgressText.Text = progress.CurrentActionProgressText;
+                ProcessProgress.ProgressPrimary = progress.OverallProgress;
+                ProcessProgress.ProgressSecondary = progress.CurrentActionProgress;
+                ProcessProgress.CenterTextSecondary = progress.CurrentActionProgressText;
             });
             var failed = false;
             string? errorMessage = null;
@@ -379,7 +380,7 @@ namespace VideoSplitter
                 }
 
                 viewModel.State = OperationState.AfterOperation;
-                CurrentRangeFileName.Text = "Done";
+                ProcessProgress.RightTextPrimary = "Done";
                 outputFiles = splitProcessor.GetFilePathsFromFolder(outputFolder);
             }
             catch (Exception ex)
@@ -422,44 +423,19 @@ namespace VideoSplitter
             return (true, interval);
         }
 
-        private void PauseOrViewSplit_OnClick(object sender, RoutedEventArgs e)
-        {
-            if(viewModel.State == OperationState.AfterOperation)
-            {
-                splitProcessor.ViewFiles(outputFolder);
-                return;
-            }
+        private void ProcessProgress_OnPauseRequested(object? sender, EventArgs e) => splitProcessor.Pause();
 
-            if(viewModel.ProcessPaused)
-            {
-                splitProcessor.Resume();
-                viewModel.ProcessPaused = false;
-            }
-            else
-            {
-                splitProcessor.Pause();
-                viewModel.ProcessPaused = true;
-            }
-        }
+        private void ProcessProgress_OnResumeRequested(object? sender, EventArgs e) => splitProcessor.Resume();
 
-        private void CancelOrCloseSplit_OnClick(object sender, RoutedEventArgs e)
-        {
-            if (viewModel.State == OperationState.AfterOperation)
-            {
-                viewModel.State = OperationState.BeforeOperation;
-                return;
-            }
+        private void ProcessProgress_OnViewRequested(object? sender, EventArgs e) => splitProcessor.ViewFolder(outputFolder);
 
-            FlyoutBase.ShowAttachedFlyout((FrameworkElement)sender);
-        }
-
-        private async void CancelProcess(object sender, RoutedEventArgs e)
+        private async void ProcessProgress_OnCancelRequested(object? sender, EventArgs e)
         {
             await splitProcessor.Cancel(outputFolder);
             viewModel.State = OperationState.BeforeOperation;
-            viewModel.ProcessPaused = false;
-            CancelFlyout.Hide();
         }
+
+        private void ProcessProgress_OnCloseRequested(object? sender, EventArgs e) => viewModel.State = OperationState.BeforeOperation;
 
         private void GoBack(object sender, RoutedEventArgs e)
         {

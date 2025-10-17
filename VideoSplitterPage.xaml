@@ -7,7 +7,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:converters="using:CommunityToolkit.WinUI.Converters"
     xmlns:videoSplitterPage="using:VideoSplitterPage"
-    xmlns:timeline="using:Timeline" Loaded="VideoSplitterPage_OnLoaded">
+    xmlns:timeline="using:Timeline"
+    xmlns:controls="using:WinUIShared.Controls"
+    Loaded="VideoSplitterPage_OnLoaded">
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <converters:BoolNegationConverter x:Key="BoolNegationConverter" />
@@ -132,46 +134,10 @@
                 </Viewbox>
             </Canvas>
         </ScrollView>
-        <RelativePanel Visibility="{x:Bind viewModel.BeforeOperation, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=True}"
-                       Grid.Row="3" Grid.Column="0" Padding="10">
-            <TextBlock Name="TotalRangeCount"/>
-            <TextBlock Name="CurrentRangeFileName" RelativePanel.AlignRightWith="OverallSplitProgress"/>
-            <ProgressBar Name="OverallSplitProgress" Maximum="{x:Bind progressMax}" RelativePanel.AlignLeftWithPanel="True"
-                         RelativePanel.Below="TotalRangeCount" RelativePanel.LeftOf="CancelSplit" Margin="0,4,0,0"/>
-            <Button Name="CancelSplit" RelativePanel.AlignRightWithPanel="True" Margin="10,0,0,0" Width="120" Click="CancelOrCloseSplit_OnClick">
-                <FlyoutBase.AttachedFlyout>
-                    <Flyout x:Name="CancelFlyout">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Style="{ThemeResource BaseTextBlockStyle}" VerticalAlignment="Center">Cancel process?</TextBlock>
-                            <Button ToolTipService.ToolTip="Done" Margin="10,0,0,0" Click="CancelProcess">
-                                <FontIcon Glyph="&#xE8FB;" />
-                            </Button>
-                        </StackPanel>
-                    </Flyout>
-                </FlyoutBase.AttachedFlyout>
-                <StackPanel Orientation="Horizontal">
-                    <FontIcon Glyph="&#xE711;" Margin="0,0,10,0" />
-                    <TextBlock VerticalAlignment="Center" Text="{x:Bind viewModel.AfterOperation, Mode=OneWay, Converter={StaticResource CloseOrCancelConverter}}"/>
-                </StackPanel>
-            </Button>
-            <TextBlock Name="CurrentSplitProgressText" RelativePanel.Above="CurrentSplitProgress" RelativePanel.Below="OverallSplitProgress"
-                       RelativePanel.AlignHorizontalCenterWith="CurrentSplitProgress" Margin="0,30,0,0"/>
-            <ProgressBar Name="CurrentSplitProgress" Maximum="{x:Bind progressMax}" RelativePanel.AlignLeftWithPanel="True"
-                         RelativePanel.AlignBottomWithPanel="True" RelativePanel.LeftOf="PauseSplit" Margin="0,4,0,0"/>
-            <Button Name="PauseSplit" RelativePanel.AlignBottomWithPanel="True" RelativePanel.AlignRightWithPanel="True" Width="120" Margin="10,0,0,0"
-                    Click="PauseOrViewSplit_OnClick">
-                <Grid>
-                    <StackPanel Orientation="Horizontal" Visibility="{x:Bind viewModel.AfterOperation, Mode=OneWay}">
-                        <FontIcon Glyph="&#xE8A7;" Margin="0,0,10,0" />
-                        <TextBlock VerticalAlignment="Center" Text="View"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Visibility="{x:Bind viewModel.DuringOperation, Mode=OneWay}">
-                        <FontIcon Glyph="{x:Bind viewModel.ProcessPaused, Mode=OneWay, Converter={StaticResource ResumeOrPauseGlyphConverter}}" Margin="0,0,10,0" />
-                        <TextBlock VerticalAlignment="Center" Text="{x:Bind viewModel.ProcessPaused, Mode=OneWay, Converter={StaticResource ResumeOrPauseConverter}}"/>
-                    </StackPanel>
-                </Grid>
-            </Button>
-        </RelativePanel>
+        <controls:ProcessProgress Grid.Row="3" Grid.Column="0" x:Name="ProcessProgress" State="{x:Bind viewModel.State, Mode=OneWay}"
+                                  PauseRequested="ProcessProgress_OnPauseRequested" ResumeRequested="ProcessProgress_OnResumeRequested"
+                                  ViewRequested="ProcessProgress_OnViewRequested" CancelRequested="ProcessProgress_OnCancelRequested"
+                                  CloseRequested="ProcessProgress_OnCloseRequested"/>
         <Grid Grid.Column="1" Grid.Row="0" Grid.RowSpan="4" Padding="10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
