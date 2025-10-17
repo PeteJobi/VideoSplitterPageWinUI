@@ -238,7 +238,7 @@ namespace VideoSplitterPage
             }
         }
 
-        public void ViewFiles(string folder)
+        public void ViewFolder(string folder)
         {
             ProcessStartInfo info = new ProcessStartInfo();
             info.FileName = "explorer";
