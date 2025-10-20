@@ -54,13 +54,6 @@ namespace VideoSplitterPage
             set => SetProperty(ref _state, value, alsoNotify: [nameof(BeforeOperation), nameof(DuringOperation), nameof(AfterOperation)]);
         }
 
-        private bool _processpaused;
-        public bool ProcessPaused
-        {
-            get => _processpaused;
-            set => SetProperty(ref _processpaused, value);
-        }
-
         private bool _isaudio;
         public bool IsAudio
         {
