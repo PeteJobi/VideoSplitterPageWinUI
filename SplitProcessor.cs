@@ -128,8 +128,8 @@ namespace VideoSplitterPage
             var fraction = (currentTime - (currentSegment * segmentDuration)) / currentSegmentDuration;
             progress.Report(new ValueProgress
             {
-                OverallProgress = (int)(currentTime / totalDuration * Max),
-                CurrentActionProgress = Math.Max(0, Math.Min((int)(fraction * Max), Max)),
+                OverallProgress = currentTime / totalDuration * Max,
+                CurrentActionProgress = Math.Max(0, Math.Min(fraction * Max, Max)),
                 CurrentActionProgressText = $"{Math.Round(fraction * 100, 2)} %"
             });
         }
