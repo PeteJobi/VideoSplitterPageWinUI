@@ -131,10 +131,10 @@
                 </Viewbox>
             </Canvas>
         </ScrollView>
-        <controls:ProcessProgress Grid.Row="3" Grid.Column="0" x:Name="ProcessProgress" State="{x:Bind viewModel.State, Mode=OneWay}"
+        <controls:ProcessProgress Grid.Row="3" Grid.Column="0" x:Name="ProcessProgress" State="{x:Bind viewModel.State, Mode=TwoWay}"
                                   PauseRequested="ProcessProgress_OnPauseRequested" ResumeRequested="ProcessProgress_OnResumeRequested"
                                   ViewRequested="ProcessProgress_OnViewRequested" CancelRequested="ProcessProgress_OnCancelRequested"
-                                  CloseRequested="ProcessProgress_OnCloseRequested"/>
+                                  CloseRequested="ProcessProgress_OnCloseRequested" Padding="10"/>
         <Grid Grid.Column="1" Grid.Row="0" Grid.RowSpan="4" Padding="10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
