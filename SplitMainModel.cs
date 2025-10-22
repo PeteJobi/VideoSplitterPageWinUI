@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using VideoSplitter;
 using VideoSplitterBase;
+using WinUIShared.Enums;
 
 namespace VideoSplitterPage
 {
@@ -51,13 +52,6 @@ namespace VideoSplitterPage
         {
             get => _state;
             set => SetProperty(ref _state, value, alsoNotify: [nameof(BeforeOperation), nameof(DuringOperation), nameof(AfterOperation)]);
-        }
-
-        private bool _processpaused;
-        public bool ProcessPaused
-        {
-            get => _processpaused;
-            set => SetProperty(ref _processpaused, value);
         }
 
         private bool _isaudio;
@@ -113,9 +107,5 @@ namespace VideoSplitterPage
                 OnPropertyChanged();
             }
         }
-    }
-    public enum OperationState
-    {
-        BeforeOperation, DuringOperation, AfterOperation
     }
 }

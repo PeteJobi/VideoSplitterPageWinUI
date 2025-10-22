@@ -16,10 +16,11 @@ namespace VideoSplitterPage
         static readonly string[] allowedExts = { ".mkv", ".mp4", ".mp3" };
         private Process? currentProcess;
         private bool hasBeenKilled;
+        private const double Max = 100.0;
         private const string FileNameLongError =
             "The source file name is too long. Shorten it to get the total number of characters in the destination directory lower than 256.\n\nDestination directory: ";
 
-        public async Task SpecificSplit(string fileName, string ffmpegPath, SplitRange[] ranges, double progressMax, IProgress<FileProgress> fileProgress, IProgress<ValueProgress> valueProgress, Action<string> setOutputFolder, Action<string> error)
+        public async Task SpecificSplit(string fileName, string ffmpegPath, SplitRange[] ranges, IProgress<FileProgress> fileProgress, IProgress<ValueProgress> valueProgress, Action<string> setOutputFolder, Action<string> error)
         {
             var total = ranges.Length;
             fileProgress.Report(new FileProgress
@@ -45,15 +46,15 @@ namespace VideoSplitterPage
                     if (CheckNoSpaceDuringBreakMerge(args.Data, error)) return;
                     var matchCollection = Regex.Matches(args.Data, @"^frame=\s*\d+\s.+?time=(\d{2}:\d{2}:\d{2}\.\d{2}).+");
                     if (matchCollection.Count == 0) return;
-                    IncrementSpecificSplitProgress(segmentDuration, TimeSpan.Parse(matchCollection[0].Groups[1].Value), durationElapsed, totalDuration, progressMax, valueProgress);
+                    IncrementSpecificSplitProgress(segmentDuration, TimeSpan.Parse(matchCollection[0].Groups[1].Value), durationElapsed, totalDuration, valueProgress);
                 });
                 if (HasBeenKilled()) return;
                 durationElapsed += segmentDuration;
             }
-            AllDone(total, progressMax, fileProgress, valueProgress);
+            AllDone(total, fileProgress, valueProgress);
         }
 
-        public async Task IntervalSplit(string fileName, string ffmpegPath, TimeSpan segmentDuration, double progressMax, IProgress<FileProgress> fileProgress, IProgress<ValueProgress> valueProgress, Action<string> setOutputFolder, Action<string> error)
+        public async Task IntervalSplit(string fileName, string ffmpegPath, TimeSpan segmentDuration, IProgress<FileProgress> fileProgress, IProgress<ValueProgress> valueProgress, Action<string> setOutputFolder, Action<string> error)
         {
             var duration = TimeSpan.MinValue;
             var totalSegments = 0;
@@ -89,11 +90,11 @@ namespace VideoSplitterPage
                     if (CheckNoSpaceDuringBreakMerge(args.Data, error)) return;
                     var matchCollection = Regex.Matches(args.Data, @"^frame=\s*\d+\s.+?time=(\d{2}:\d{2}:\d{2}\.\d{2}).+");
                     if (matchCollection.Count == 0) return;
-                    IncrementIntervalSplitProgress(segmentDuration, TimeSpan.Parse(matchCollection[0].Groups[1].Value), duration, currentSegment, totalSegments, progressMax, valueProgress);
+                    IncrementIntervalSplitProgress(segmentDuration, TimeSpan.Parse(matchCollection[0].Groups[1].Value), duration, currentSegment, totalSegments, valueProgress);
                 }
             });
             if (HasBeenKilled()) return;
-            AllDone(totalSegments, progressMax, fileProgress, valueProgress);
+            AllDone(totalSegments, fileProgress, valueProgress);
         }
 
         public List<string> GetFilePathsFromFolder(string folderPath)
@@ -109,26 +110,26 @@ namespace VideoSplitterPage
             return ext is ".mp3" or ".wav" or ".flac" or ".aac" or ".m4a" or ".wma";
         }
 
-        void IncrementSpecificSplitProgress(TimeSpan segmentDuration, TimeSpan currentTime, TimeSpan elapsedDuration, TimeSpan totalDuration, double max, IProgress<ValueProgress> progress)
+        void IncrementSpecificSplitProgress(TimeSpan segmentDuration, TimeSpan currentTime, TimeSpan elapsedDuration, TimeSpan totalDuration, IProgress<ValueProgress> progress)
         {
             var fraction = currentTime / segmentDuration;
             progress.Report(new ValueProgress
             {
-                OverallProgress = Math.Max(0, Math.Min((currentTime + elapsedDuration) / totalDuration * max, max)),
-                CurrentActionProgress = Math.Max(0, Math.Min(fraction * max, max)),
+                OverallProgress = Math.Max(0, Math.Min((currentTime + elapsedDuration) / totalDuration * Max, Max)),
+                CurrentActionProgress = Math.Max(0, Math.Min(fraction * Max, Max)),
                 CurrentActionProgressText = $"{Math.Round(fraction * 100, 2)} %"
             });
         }
 
-        void IncrementIntervalSplitProgress(TimeSpan segmentDuration, TimeSpan currentTime, TimeSpan totalDuration, int currentSegment, int totalSegments, double max, IProgress<ValueProgress> progress)
+        void IncrementIntervalSplitProgress(TimeSpan segmentDuration, TimeSpan currentTime, TimeSpan totalDuration, int currentSegment, int totalSegments, IProgress<ValueProgress> progress)
         {
             var currentSegmentDuration = currentSegment < totalSegments - 1 ? segmentDuration : totalDuration - (currentSegment * segmentDuration);
             if (currentSegment == totalSegments - 1) Debug.WriteLine(currentSegmentDuration);
             var fraction = (currentTime - (currentSegment * segmentDuration)) / currentSegmentDuration;
             progress.Report(new ValueProgress
             {
-                OverallProgress = (int)(currentTime / totalDuration * max),
-                CurrentActionProgress = Math.Max(0, Math.Min((int)(fraction * max), max)),
+                OverallProgress = currentTime / totalDuration * Max,
+                CurrentActionProgress = Math.Max(0, Math.Min(fraction * Max, Max)),
                 CurrentActionProgressText = $"{Math.Round(fraction * 100, 2)} %"
             });
         }
@@ -165,7 +166,7 @@ namespace VideoSplitterPage
             return outputFolder;
         }
 
-        void AllDone(int totalSegments, double max, IProgress<FileProgress> fileProgress, IProgress<ValueProgress> valueProgress)
+        void AllDone(int totalSegments, IProgress<FileProgress> fileProgress, IProgress<ValueProgress> valueProgress)
         {
             currentProcess = null;
             fileProgress.Report(new FileProgress
@@ -174,7 +175,7 @@ namespace VideoSplitterPage
             });
             valueProgress.Report(new ValueProgress
             {
-                OverallProgress = max, CurrentActionProgress = max, CurrentActionProgressText = "100 %"
+                OverallProgress = Max, CurrentActionProgress = Max, CurrentActionProgressText = "100 %"
             });
         }
 
@@ -238,7 +239,7 @@ namespace VideoSplitterPage
             }
         }
 
-        public void ViewFiles(string folder)
+        public void ViewFolder(string folder)
         {
             ProcessStartInfo info = new ProcessStartInfo();
             info.FileName = "explorer";
