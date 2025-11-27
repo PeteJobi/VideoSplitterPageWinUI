@@ -39,7 +39,7 @@ namespace VideoSplitter
     {
         private SplitMainModel viewModel = new();
         private MediaSplitter<SplitRangeModel> splitter;
-        private readonly SplitProcessor splitProcessor;
+        private SplitProcessor splitProcessor;
         private string ffmpegPath, videoPath;
         private readonly double progressMax = 100;
         private string outputFolder;
@@ -50,7 +50,6 @@ namespace VideoSplitter
         public VideoSplitterPage()
         {
             InitializeComponent();
-            splitProcessor = new SplitProcessor();
             viewModel.SplitModel.SplitRanges.CollectionChanged += SplitRangesOnCollectionChanged;
             var bindingProxy = (BindingProxy)Application.Current.Resources["GlobalBindingProxy"];
             bindingProxy.Data = viewModel;
@@ -62,6 +61,7 @@ namespace VideoSplitter
             ffmpegPath = props.FfmpegPath;
             videoPath = props.VideoPath;
             navigateTo = props.TypeToNavigateTo;
+            splitProcessor = new SplitProcessor(ffmpegPath);
             viewModel.IsAudio = splitProcessor.IsAudio(videoPath);
             VideoName.Text = Path.GetFileName(videoPath);
             VideoPlayer.Source = MediaSource.CreateFromUri(new Uri(videoPath));
@@ -373,7 +373,7 @@ namespace VideoSplitter
                 {
                     viewModel.State = OperationState.BeforeOperation;
                     await ErrorAction(errorMessage!);
-                    await splitProcessor.Cancel(outputFolder);
+                    await splitProcessor.Cancel();
                     return;
                 }
 
@@ -425,11 +425,11 @@ namespace VideoSplitter
 
         private void ProcessProgress_OnResumeRequested(object? sender, EventArgs e) => splitProcessor.Resume();
 
-        private void ProcessProgress_OnViewRequested(object? sender, EventArgs e) => splitProcessor.ViewFolder(outputFolder);
+        private void ProcessProgress_OnViewRequested(object? sender, EventArgs e) => splitProcessor.ViewFile();
 
         private async void ProcessProgress_OnCancelRequested(object? sender, EventArgs e)
         {
-            await splitProcessor.Cancel(outputFolder);
+            await splitProcessor.Cancel();
             viewModel.State = OperationState.BeforeOperation;
         }
 
@@ -437,7 +437,7 @@ namespace VideoSplitter
 
         private void GoBack(object sender, RoutedEventArgs e)
         {
-            _ = splitProcessor.Cancel(outputFolder);
+            _ = splitProcessor.Cancel();
             _ = splitter?.Dispose();
             VideoPlayer.MediaPlayer.Pause();
             playSectionTokenSource.Cancel();

@@ -8,18 +8,12 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using VideoSplitterBase;
+using WinUIShared.Helpers;
 
 namespace VideoSplitterPage
 {
-    public class SplitProcessor
+    public class SplitProcessor(string ffmpegPath) : Processor(ffmpegPath)
     {
-        static readonly string[] allowedExts = { ".mkv", ".mp4", ".mp3" };
-        private Process? currentProcess;
-        private bool hasBeenKilled;
-        private const double Max = 100.0;
-        private const string FileNameLongError =
-            "The source file name is too long. Shorten it to get the total number of characters in the destination directory lower than 256.\n\nDestination directory: ";
-
         public async Task SpecificSplit(string fileName, string ffmpegPath, SplitRange[] ranges, bool precise, IProgress<FileProgress> fileProgress, IProgress<ValueProgress> valueProgress, Action<string> setOutputFolder, Action<string> error)
         {
             var total = ranges.Length;
@@ -40,13 +34,13 @@ namespace VideoSplitterPage
                 var command = !precise
                     ? $"-ss {range.Start:hh\\:mm\\:ss\\.fff} -i \"{fileName}\" -to {range.End:hh\\:mm\\:ss\\.fff} -c copy -map 0 -avoid_negative_ts make_zero"
                     : $"-i \"{fileName}\" -ss {range.Start:hh\\:mm\\:ss\\.fff} -to {range.End:hh\\:mm\\:ss\\.fff} -c:v libx265 -c:a copy";
-                await StartProcess(ffmpegPath, $"{command} \"{folder}\\{ExtendedName(fileName, i.ToString("D3"))}\"", null, (sender, args) =>
+                await StartFfmpegProcess($"{command} \"{folder}\\{ExtendedName(fileName, i.ToString("D3"))}\"", (sender, args) =>
                 {
                     if (string.IsNullOrWhiteSpace(args.Data) || hasBeenKilled) return;
                     Debug.WriteLine(args.Data);
-                    if (FileNameLongErrorSplit(args.Data, error)) return;
+                    if (CheckFileNameLongErrorSplit(args.Data, error)) return;
                     if (!args.Data.StartsWith("frame")) return;
-                    if (CheckNoSpaceDuringBreakMerge(args.Data, error)) return;
+                    if (CheckNoSpaceDuringProcess(args.Data, error)) return;
                     var matchCollection = Regex.Matches(args.Data, @"^frame=\s*\d+\s.+?time=(\d{2}:\d{2}:\d{2}\.\d{2}).+");
                     if (matchCollection.Count == 0) return;
                     IncrementSpecificSplitProgress(segmentDuration, TimeSpan.Parse(matchCollection[0].Groups[1].Value), durationElapsed, totalDuration, valueProgress);
@@ -62,11 +56,11 @@ namespace VideoSplitterPage
             var duration = TimeSpan.MinValue;
             var totalSegments = 0;
             var currentSegment = -1;
-            await StartProcess(ffmpegPath, $"-i \"{fileName}\" -c copy -map 0 -segment_time {segmentDuration} -f segment -reset_timestamps 1 \"{GetOutputFolder(fileName, setOutputFolder)}/{ExtendedName(fileName, "%03d")}\"", null, (sender, args) =>
+            await StartFfmpegProcess($"-i \"{fileName}\" -c copy -map 0 -segment_time {segmentDuration} -f segment -reset_timestamps 1 \"{GetOutputFolder(fileName, setOutputFolder)}/{ExtendedName(fileName, "%03d")}\"", (sender, args) =>
             {
                 Debug.WriteLine(args.Data);
                 if (string.IsNullOrWhiteSpace(args.Data) || hasBeenKilled) return;
-                if (FileNameLongErrorSplit(args.Data, error)) return;
+                if (CheckFileNameLongErrorSplit(args.Data, error)) return;
                 if (duration == TimeSpan.MinValue)
                 {
                     var matchCollection = Regex.Matches(args.Data, @"\s*Duration:\s(\d{2}:\d{2}:\d{2}\.\d{2}).+");
@@ -90,7 +84,7 @@ namespace VideoSplitterPage
                 }
                 else if (args.Data.StartsWith("frame"))
                 {
-                    if (CheckNoSpaceDuringBreakMerge(args.Data, error)) return;
+                    if (CheckNoSpaceDuringProcess(args.Data, error)) return;
                     var matchCollection = Regex.Matches(args.Data, @"^frame=\s*\d+\s.+?time=(\d{2}:\d{2}:\d{2}\.\d{2}).+");
                     if (matchCollection.Count == 0) return;
                     IncrementIntervalSplitProgress(segmentDuration, TimeSpan.Parse(matchCollection[0].Groups[1].Value), duration, currentSegment, totalSegments, valueProgress);
@@ -118,8 +112,8 @@ namespace VideoSplitterPage
             var fraction = currentTime / segmentDuration;
             progress.Report(new ValueProgress
             {
-                OverallProgress = Math.Max(0, Math.Min((currentTime + elapsedDuration) / totalDuration * Max, Max)),
-                CurrentActionProgress = Math.Max(0, Math.Min(fraction * Max, Max)),
+                OverallProgress = Math.Max(0, Math.Min((currentTime + elapsedDuration) / totalDuration * ProgressMax, ProgressMax)),
+                CurrentActionProgress = Math.Max(0, Math.Min(fraction * ProgressMax, ProgressMax)),
                 CurrentActionProgressText = $"{Math.Round(fraction * 100, 2)} %"
             });
         }
@@ -131,29 +125,13 @@ namespace VideoSplitterPage
             var fraction = (currentTime - (currentSegment * segmentDuration)) / currentSegmentDuration;
             progress.Report(new ValueProgress
             {
-                OverallProgress = currentTime / totalDuration * Max,
-                CurrentActionProgress = Math.Max(0, Math.Min(fraction * Max, Max)),
+                OverallProgress = currentTime / totalDuration * ProgressMax,
+                CurrentActionProgress = Math.Max(0, Math.Min(fraction * ProgressMax, ProgressMax)),
                 CurrentActionProgressText = $"{Math.Round(fraction * 100, 2)} %"
             });
         }
 
         private string ExtendedName(string fileName, string extra) => $"{Path.GetFileNameWithoutExtension(fileName)}{extra}{Path.GetExtension(fileName)}";
-
-        private bool CheckNoSpaceDuringBreakMerge(string line, Action<string> error)
-        {
-            if (!line.EndsWith("No space left on device") && !line.EndsWith("I/O error")) return false;
-            SuspendProcess(currentProcess);
-            error($"Process failed.\nError message: {line}");
-            return true;
-        }
-
-        private static bool FileNameLongErrorSplit(string line, Action<string> error)
-        {
-            const string noSuchDirectory = ": No such file or directory";
-            if (!line.EndsWith(noSuchDirectory)) return false;
-            error(FileNameLongError + line[..^noSuchDirectory.Length]);
-            return true;
-        }
 
         string GetOutputFolder(string path, Action<string> setFolder)
         {
@@ -166,6 +144,7 @@ namespace VideoSplitterPage
                 Directory.Delete(outputFolder, true);
             }
             Directory.CreateDirectory(outputFolder);
+            outputFile = outputFolder;
             return outputFolder;
         }
 
@@ -178,157 +157,8 @@ namespace VideoSplitterPage
             });
             valueProgress.Report(new ValueProgress
             {
-                OverallProgress = Max, CurrentActionProgress = Max, CurrentActionProgressText = "100 %"
+                OverallProgress = ProgressMax, CurrentActionProgress = ProgressMax, CurrentActionProgressText = "100 %"
             });
-        }
-
-        bool HasBeenKilled()
-        {
-            if (!hasBeenKilled) return false;
-            hasBeenKilled = false;
-            return true;
-        }
-
-        public async Task Cancel(string outputFolder)
-        {
-            if(currentProcess == null) return;
-            currentProcess.Kill();
-            await currentProcess.WaitForExitAsync();
-            hasBeenKilled = true;
-            currentProcess = null;
-            if (Directory.Exists(outputFolder)) Directory.Delete(outputFolder, true);
-        }
-
-        public void Pause()
-        {
-            if (currentProcess == null) return;
-            foreach (ProcessThread pT in currentProcess.Threads)
-            {
-                var pOpenThread = OpenThread(ThreadAccess.SUSPEND_RESUME, false, (uint)pT.Id);
-
-                if (pOpenThread == IntPtr.Zero)
-                {
-                    continue;
-                }
-
-                SuspendThread(pOpenThread);
-
-                CloseHandle(pOpenThread);
-            }
-        }
-
-        public void Resume()
-        {
-            if (currentProcess == null) return;
-            if (currentProcess.ProcessName == string.Empty)
-                return;
-
-            foreach (ProcessThread pT in currentProcess.Threads)
-            {
-                var pOpenThread = OpenThread(ThreadAccess.SUSPEND_RESUME, false, (uint)pT.Id);
-
-                if (pOpenThread == IntPtr.Zero)
-                {
-                    continue;
-                }
-
-                int suspendCount;
-                do
-                {
-                    suspendCount = ResumeThread(pOpenThread);
-                } while (suspendCount > 0);
-
-                CloseHandle(pOpenThread);
-            }
-        }
-
-        public void ViewFolder(string folder)
-        {
-            ProcessStartInfo info = new ProcessStartInfo();
-            info.FileName = "explorer";
-            info.Arguments = $"/e, /select, \"{folder}\"";
-            Process.Start(info);
-        }
-
-        async Task StartProcess(string processFileName, string arguments, DataReceivedEventHandler? outputEventHandler, DataReceivedEventHandler? errorEventHandler)
-        {
-            Process ffmpeg = new()
-            {
-                StartInfo = new ProcessStartInfo()
-                {
-                    FileName = processFileName,
-                    Arguments = arguments,
-                    CreateNoWindow = true,
-                    RedirectStandardError = true,
-                    RedirectStandardOutput = true,
-                },
-                EnableRaisingEvents = true
-            };
-            ffmpeg.OutputDataReceived += outputEventHandler;
-            ffmpeg.ErrorDataReceived += errorEventHandler;
-            ffmpeg.Start();
-            ffmpeg.BeginErrorReadLine();
-            ffmpeg.BeginOutputReadLine();
-            currentProcess = ffmpeg;
-            await ffmpeg.WaitForExitAsync();
-            ffmpeg.Dispose();
-            currentProcess = null;
-        }
-
-        [Flags]
-        public enum ThreadAccess : int
-        {
-            SUSPEND_RESUME = (0x0002)
-        }
-
-        [DllImport("kernel32.dll")]
-        static extern IntPtr OpenThread(ThreadAccess dwDesiredAccess, bool bInheritHandle, uint dwThreadId);
-        [DllImport("kernel32.dll")]
-        static extern uint SuspendThread(IntPtr hThread);
-        [DllImport("kernel32.dll")]
-        static extern int ResumeThread(IntPtr hThread);
-        [DllImport("kernel32", CharSet = CharSet.Auto, SetLastError = true)]
-        static extern bool CloseHandle(IntPtr handle);
-
-        private static void SuspendProcess(Process process)
-        {
-            foreach (ProcessThread pT in process.Threads)
-            {
-                IntPtr pOpenThread = OpenThread(ThreadAccess.SUSPEND_RESUME, false, (uint)pT.Id);
-
-                if (pOpenThread == IntPtr.Zero)
-                {
-                    continue;
-                }
-
-                SuspendThread(pOpenThread);
-
-                CloseHandle(pOpenThread);
-            }
-        }
-
-        public static void ResumeProcess(Process process)
-        {
-            if (process.ProcessName == string.Empty)
-                return;
-
-            foreach (ProcessThread pT in process.Threads)
-            {
-                IntPtr pOpenThread = OpenThread(ThreadAccess.SUSPEND_RESUME, false, (uint)pT.Id);
-
-                if (pOpenThread == IntPtr.Zero)
-                {
-                    continue;
-                }
-
-                int suspendCount;
-                do
-                {
-                    suspendCount = ResumeThread(pOpenThread);
-                } while (suspendCount > 0);
-
-                CloseHandle(pOpenThread);
-            }
         }
     }
 
