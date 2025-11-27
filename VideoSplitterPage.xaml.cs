@@ -80,10 +80,7 @@ namespace VideoSplitter
                 viewModel.IsAudio ? null : ffmpegPath, videoPath);
         }
 
-        private void SplitClicked(object sender, RoutedEventArgs e)
-        {
-            splitter.SplitSection();
-        }
+        private void SplitClicked(object sender, RoutedEventArgs e) => splitter.SplitSection();
 
         private void ScaleTimelineDown(object sender, RoutedEventArgs e) => TimelineScaleSlider.Value -= 0.25;
         private void ScaleTimelineUp(object sender, RoutedEventArgs e) => TimelineScaleSlider.Value += 0.25;
@@ -357,10 +354,10 @@ namespace VideoSplitter
             string? errorMessage = null;
 
             outputFiles = null;
-            var (isInterval, interval) = IsIntervalSplit(rangesToProcess);
+            var (isInterval, interval) = viewModel.DoPreciseSplit ? (false, default) : IsIntervalSplit(rangesToProcess);
             try
             {
-                if (isInterval)
+                if (isInterval && !viewModel.DoPreciseSplit)
                 {
                     await splitProcessor.IntervalSplit(videoPath, ffmpegPath, interval, fileProgress,
                         valueProgress, SetOutputFolder, ErrorActionFromFfmpeg);
@@ -368,7 +365,7 @@ namespace VideoSplitter
                 else
                 {
                     await splitProcessor.SpecificSplit(videoPath, ffmpegPath, rangesToProcess.ToArray(),
-                        fileProgress, valueProgress, SetOutputFolder, ErrorActionFromFfmpeg);
+                        viewModel.DoPreciseSplit, fileProgress, valueProgress, SetOutputFolder, ErrorActionFromFfmpeg);
                 }
 
                 if (viewModel.State == OperationState.BeforeOperation) return; //Canceled

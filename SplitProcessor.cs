@@ -20,7 +20,7 @@ namespace VideoSplitterPage
         private const string FileNameLongError =
             "The source file name is too long. Shorten it to get the total number of characters in the destination directory lower than 256.\n\nDestination directory: ";
 
-        public async Task SpecificSplit(string fileName, string ffmpegPath, SplitRange[] ranges, IProgress<FileProgress> fileProgress, IProgress<ValueProgress> valueProgress, Action<string> setOutputFolder, Action<string> error)
+        public async Task SpecificSplit(string fileName, string ffmpegPath, SplitRange[] ranges, bool precise, IProgress<FileProgress> fileProgress, IProgress<ValueProgress> valueProgress, Action<string> setOutputFolder, Action<string> error)
         {
             var total = ranges.Length;
             fileProgress.Report(new FileProgress
@@ -37,7 +37,10 @@ namespace VideoSplitterPage
                 var range = ranges[i];
                 var segmentDuration = range.End - range.Start;
                 fileProgress.Report(new FileProgress { TotalRangeCount = $"{i}/{total}", CurrentRangeFileName = ExtendedName(fileName, i.ToString("D3")) });
-                await StartProcess(ffmpegPath, $"-ss {range.Start:hh\\:mm\\:ss\\.fff} -i \"{fileName}\" -c copy -map 0 -to {segmentDuration:hh\\:mm\\:ss\\.fff} -avoid_negative_ts make_zero \"{folder}\\{ExtendedName(fileName, i.ToString("D3"))}\"", null, (sender, args) =>
+                var command = !precise
+                    ? $"-ss {range.Start:hh\\:mm\\:ss\\.fff} -i \"{fileName}\" -to {range.End:hh\\:mm\\:ss\\.fff} -c copy -map 0 -avoid_negative_ts make_zero"
+                    : $"-i \"{fileName}\" -ss {range.Start:hh\\:mm\\:ss\\.fff} -to {range.End:hh\\:mm\\:ss\\.fff} -c:v libx265 -c:a copy";
+                await StartProcess(ffmpegPath, $"{command} \"{folder}\\{ExtendedName(fileName, i.ToString("D3"))}\"", null, (sender, args) =>
                 {
                     if (string.IsNullOrWhiteSpace(args.Data) || hasBeenKilled) return;
                     Debug.WriteLine(args.Data);

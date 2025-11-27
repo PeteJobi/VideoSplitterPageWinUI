@@ -47,6 +47,13 @@ namespace VideoSplitterPage
             set => SetProperty(ref _allareselected, value);
         }
 
+        private bool _doprecisesplit;
+        public bool DoPreciseSplit
+        {
+            get => _doprecisesplit;
+            set => SetProperty(ref _doprecisesplit, value);
+        }
+
         private OperationState _state;
         public OperationState State
         {
