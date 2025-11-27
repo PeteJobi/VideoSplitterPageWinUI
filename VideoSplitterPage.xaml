@@ -91,10 +91,12 @@
                 <Run Text=" / "/>
                 <Run Text="{x:Bind viewModel.Duration, Mode=OneWay, Converter={StaticResource TimeSpanToTextConverter}}"/>
             </TextBlock>
-            <Button Grid.Column="2" Margin="10,0,4,0" ToolTipService.ToolTip="Previous frame" Click="StepBackClicked">
+            <Button Grid.Column="2" Margin="10,0,4,0" ToolTipService.ToolTip="Previous frame" Click="StepBackClicked"
+                    IsEnabled="{x:Bind viewModel.IsAudio, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}">
                 <FontIcon Glyph="&#xE973;" />
             </Button>
-            <Button Grid.Column="3" ToolTipService.ToolTip="Next frame" Click="StepForwardClicked">
+            <Button Grid.Column="3" ToolTipService.ToolTip="Next frame" Click="StepForwardClicked"
+                    IsEnabled="{x:Bind viewModel.IsAudio, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}">
                 <FontIcon Glyph="&#xE974;" />
             </Button>
             <Grid Grid.Column="4">
