@@ -33,7 +33,7 @@ namespace VideoSplitterPage
                 fileProgress.Report(new FileProgress { TotalRangeCount = $"{i}/{total}", CurrentRangeFileName = ExtendedName(fileName, i.ToString("D3")) });
                 var command = !precise
                     ? $"-ss {range.Start:hh\\:mm\\:ss\\.fff} -i \"{fileName}\" -to {range.End:hh\\:mm\\:ss\\.fff} -c copy -map 0 -avoid_negative_ts make_zero"
-                    : $"-i \"{fileName}\" -ss {range.Start:hh\\:mm\\:ss\\.fff} -to {range.End:hh\\:mm\\:ss\\.fff} -c:v libx265 -c:a copy";
+                    : $"-i \"{fileName}\" -ss {range.Start:hh\\:mm\\:ss\\.fff} -to {range.End:hh\\:mm\\:ss\\.fff} -c:v libx265 -c:a copy -crf 18";
                 await StartFfmpegProcess($"{command} \"{folder}\\{ExtendedName(fileName, i.ToString("D3"))}\"", (sender, args) =>
                 {
                     if (string.IsNullOrWhiteSpace(args.Data) || hasBeenKilled) return;
