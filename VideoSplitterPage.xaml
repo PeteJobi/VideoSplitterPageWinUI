@@ -133,10 +133,8 @@
                 </Viewbox>
             </Canvas>
         </ScrollView>
-        <controls:ProcessProgress Grid.Row="3" Grid.Column="0" x:Name="ProcessProgress" State="{x:Bind viewModel.State, Mode=TwoWay}"
-                                  PauseRequested="ProcessProgress_OnPauseRequested" ResumeRequested="ProcessProgress_OnResumeRequested"
-                                  ViewRequested="ProcessProgress_OnViewRequested" CancelRequested="ProcessProgress_OnCancelRequested"
-                                  CloseRequested="ProcessProgress_OnCloseRequested" Padding="10"/>
+        <controls:ProcessManager Grid.Row="3" Grid.Column="0" x:Name="ProcessManager" State="{x:Bind viewModel.State, Mode=TwoWay}" Padding="10" Processor="{x:Bind splitProcessor}"
+                                 HardwareSelector="{x:Bind HardwareSelector}"/>
         <Grid Grid.Column="1" Grid.Row="0" Grid.RowSpan="4" Padding="10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -295,6 +293,5 @@
                 </Grid>
             </Button>
         </Grid>
-        <ContentDialog Name="ErrorDialog" IsPrimaryButtonEnabled="True" PrimaryButtonText="Ok"/>
     </Grid>
 </Page>

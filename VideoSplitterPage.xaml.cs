@@ -336,74 +336,21 @@ namespace VideoSplitter
                 viewModel.SplitModel.SplitRanges.Where(r => r.IsMultiSelected) : 
                 viewModel.SplitModel.SplitRanges).Where(r => r.Start != r.End).Cast<SplitRange>().ToArray();
             if (!rangesToProcess.Any()) return;
-            viewModel.State = OperationState.DuringOperation;
-
-            var fileProgress = new Progress<FileProgress>(progress =>
-            {
-                if (progress.TotalRangeCount != null) ProcessProgress.LeftTextPrimary = progress.TotalRangeCount;
-                if (progress.CurrentRangeFileName != null)
-                    ProcessProgress.RightTextPrimary = progress.CurrentRangeFileName;
-            });
-            var valueProgress = new Progress<ValueProgress>(progress =>
-            {
-                ProcessProgress.ProgressPrimary = progress.OverallProgress;
-                ProcessProgress.ProgressSecondary = progress.CurrentActionProgress;
-                ProcessProgress.CenterTextSecondary = progress.CurrentActionProgressText;
-            });
-            var failed = false;
-            string? errorMessage = null;
 
             outputFiles = null;
             var (isInterval, interval) = viewModel.DoPreciseSplit ? (false, default) : IsIntervalSplit(rangesToProcess);
-            try
+            Task processTask;
+            if (isInterval && !viewModel.DoPreciseSplit)
             {
-                if (isInterval && !viewModel.DoPreciseSplit)
-                {
-                    await splitProcessor.IntervalSplit(videoPath, ffmpegPath, interval, fileProgress,
-                        valueProgress, SetOutputFolder, ErrorActionFromFfmpeg);
-                }
-                else
-                {
-                    await splitProcessor.SpecificSplit(videoPath, ffmpegPath, rangesToProcess.ToArray(),
-                        viewModel.DoPreciseSplit, fileProgress, valueProgress, SetOutputFolder, ErrorActionFromFfmpeg);
-                }
-
-                if (viewModel.State == OperationState.BeforeOperation) return; //Canceled
-                if (failed)
-                {
-                    viewModel.State = OperationState.BeforeOperation;
-                    await ErrorAction(errorMessage!);
-                    await splitProcessor.Cancel();
-                    return;
-                }
-
-                viewModel.State = OperationState.AfterOperation;
-                ProcessProgress.RightTextPrimary = "Done";
-                outputFiles = splitProcessor.GetFilePathsFromFolder(outputFolder);
+                processTask = splitProcessor.IntervalSplit(videoPath, ffmpegPath, interval);
             }
-            catch (Exception ex)
+            else
             {
-                await ErrorAction(ex.Message);
-                viewModel.State = OperationState.BeforeOperation;
+                processTask = splitProcessor.SpecificSplit(videoPath, ffmpegPath, rangesToProcess.ToArray(), viewModel.DoPreciseSplit);
             }
 
-            void ErrorActionFromFfmpeg(string message)
-            {
-                failed = true;
-                errorMessage = message;
-            }
-
-            void SetOutputFolder(string folder)
-            {
-                outputFolder = folder;
-            }
-
-            async Task ErrorAction(string message)
-            {
-                ErrorDialog.Title = "Split operation failed";
-                ErrorDialog.Content = message;
-                await ErrorDialog.ShowAsync();
-            }
+            var outputFolder = await ProcessManager.StartProcess(processTask);
+            if(outputFolder != null) outputFiles = splitProcessor.GetFilePathsFromFolder(outputFolder);
         }
 
         private (bool IsInterval, TimeSpan Interval) IsIntervalSplit(SplitRange[] ranges)
@@ -421,20 +368,6 @@ namespace VideoSplitter
             return (true, interval);
         }
 
-        private void ProcessProgress_OnPauseRequested(object? sender, EventArgs e) => splitProcessor.Pause();
-
-        private void ProcessProgress_OnResumeRequested(object? sender, EventArgs e) => splitProcessor.Resume();
-
-        private void ProcessProgress_OnViewRequested(object? sender, EventArgs e) => splitProcessor.ViewFile();
-
-        private async void ProcessProgress_OnCancelRequested(object? sender, EventArgs e)
-        {
-            await splitProcessor.Cancel();
-            viewModel.State = OperationState.BeforeOperation;
-        }
-
-        private void ProcessProgress_OnCloseRequested(object? sender, EventArgs e) => viewModel.State = OperationState.BeforeOperation;
-
         private void GoBack(object sender, RoutedEventArgs e)
         {
             _ = splitProcessor.Cancel();
@@ -451,23 +384,6 @@ namespace VideoSplitter
         public string FfmpegPath { get; set; }
         public string VideoPath { get; set; }
         public string? TypeToNavigateTo { get; set; }
-    }
-
-    public class VideoProgressValueConverter : IValueConverter
-    {
-        public TimeSpan Duration { get; set; }
-
-        public object Convert(object value, Type targetType, object parameter, string language)
-        {
-            if (Duration == TimeSpan.Zero) return 0d;
-            return (TimeSpan)value / Duration * Duration.TotalSeconds;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, string language)
-        {
-            if (Duration == TimeSpan.Zero) return TimeSpan.Zero;
-            return (double)value / Duration.TotalSeconds * Duration;
-        }
     }
 
     public class BindingProxy : DependencyObject
