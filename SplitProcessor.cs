@@ -26,14 +26,14 @@ namespace VideoSplitterPage
                 var segmentDuration = range.End - range.Start;
                 leftTextPrimary.Report($"{i}/{total}");
                 rightTextPrimary.Report(ExtendedName(fileName, i.ToString("D3")));
-                var outputArg = $"\"{folder}\\{ExtendedName(fileName, i.ToString("D3"))}\"";
+                var outputArg = $"{folder}\\{ExtendedName(fileName, i.ToString("D3"))}";
                 await (!precise ? StartFfmpegProcess($"-ss {range.Start:hh\\:mm\\:ss\\.fff}  -i \"{fileName}\" -to {range.End:hh\\:mm\\:ss\\.fff} -c copy -map 0 -avoid_negative_ts make_zero {outputArg}", ProgressEventHandler)
                         : StartFfmpegTranscodingProcessDefaultQuality([fileName], outputArg, $"-ss {range.Start:hh\\:mm\\:ss\\.fff} -to {range.End:hh\\:mm\\:ss\\.fff}", ProgressEventHandler));
                 if (HasBeenKilled()) return;
                 durationElapsed += segmentDuration;
                 continue;
 
-                void ProgressEventHandler(TimeSpan currentTime, TimeSpan duration, double progressPercent, int currentFrame)
+                void ProgressEventHandler(double progressPercent, TimeSpan currentTime, TimeSpan duration, int currentFrame)
                 {
                     IncrementSpecificSplitProgress(segmentDuration, currentTime, durationElapsed, totalDuration);
                 }
@@ -45,7 +45,7 @@ namespace VideoSplitterPage
         {
             var totalSegments = 0;
             var currentSegment = -1;
-            await StartFfmpegProcess($"-i \"{fileName}\" -c copy -map 0 -segment_time {segmentDuration} -f segment -reset_timestamps 1 \"{GetOutputFolder(fileName)}/{ExtendedName(fileName, "%03d")}\"", (currentTime, duration, _, _) =>
+            await StartFfmpegProcess($"-i \"{fileName}\" -c copy -map 0 -segment_time {segmentDuration} -f segment -reset_timestamps 1 \"{GetOutputFolder(fileName)}/{ExtendedName(fileName, "%03d")}\"", (_, currentTime, duration, _) =>
             {
                 if (totalSegments == 0)
                 {
