@@ -279,7 +279,7 @@
                 </ListView.ItemTemplate>
             </ListView>
             <CheckBox IsChecked="{x:Bind viewModel.DoPreciseSplit, Mode=TwoWay}" Content="Precise splitting (slower)" Grid.Row="5" Margin="0,0,0,10"/>
-            <controls:HardwareSelector Grid.Row="6" Processor="{x:Bind splitProcessor}" Margin="0,0,0,10" x:Name="HardwareSelector"
+            <controls:HardwareSelector Grid.Row="6" Margin="0,0,0,10" x:Name="HardwareSelector"
                                        Visibility="{x:Bind viewModel.DoPreciseSplit, Mode=OneWay}"/>
             <Button Grid.Row="7" HorizontalAlignment="Stretch" Style="{StaticResource AccentButtonStyle}" Click="ProcessSplit"
                     IsEnabled="{x:Bind viewModel.DuringOperation, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}">
