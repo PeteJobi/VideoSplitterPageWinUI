@@ -25,6 +25,7 @@ using Windows.Foundation.Collections;
 using Windows.Media;
 using Windows.Media.Core;
 using Windows.Media.Playback;
+using WinUIShared.Controls;
 using WinUIShared.Enums;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -61,6 +62,7 @@ namespace VideoSplitter
             ffmpegPath = props.FfmpegPath;
             videoPath = props.VideoPath;
             navigateTo = props.TypeToNavigateTo;
+            HardwareSelector.SelectedGpu = props.Gpu;
             splitProcessor = new SplitProcessor(ffmpegPath);
             viewModel.IsAudio = splitProcessor.IsAudio(videoPath);
             VideoName.Text = Path.GetFileName(videoPath);
@@ -384,6 +386,7 @@ namespace VideoSplitter
         public string FfmpegPath { get; set; }
         public string VideoPath { get; set; }
         public string? TypeToNavigateTo { get; set; }
+        public GpuInfo? Gpu { get; set; }
     }
 
     public class BindingProxy : DependencyObject
