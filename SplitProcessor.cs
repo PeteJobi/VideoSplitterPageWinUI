@@ -27,7 +27,7 @@ namespace VideoSplitterPage
                 leftTextPrimary.Report($"{i}/{total}");
                 rightTextPrimary.Report(ExtendedName(fileName, i.ToString("D3")));
                 var outputArg = $"{folder}\\{ExtendedName(fileName, i.ToString("D3"))}";
-                await (!precise ? StartFfmpegProcess($"-ss {range.Start:hh\\:mm\\:ss\\.fff}  -i \"{fileName}\" -to {range.End:hh\\:mm\\:ss\\.fff} -c copy -map 0 -avoid_negative_ts make_zero {outputArg}", ProgressEventHandler)
+                await (!precise ? StartFfmpegProcess($"-ss {range.Start:hh\\:mm\\:ss\\.fff}  -i \"{fileName}\" -to {range.End:hh\\:mm\\:ss\\.fff} -c copy -map 0 -avoid_negative_ts make_zero \"{outputArg}\"", ProgressEventHandler)
                         : StartFfmpegTranscodingProcessDefaultQuality([fileName], outputArg, $"-ss {range.Start:hh\\:mm\\:ss\\.fff} -to {range.End:hh\\:mm\\:ss\\.fff}", ProgressEventHandler));
                 if (HasBeenKilled()) return;
                 durationElapsed += segmentDuration;
