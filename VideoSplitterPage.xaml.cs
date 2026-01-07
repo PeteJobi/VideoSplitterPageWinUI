@@ -47,7 +47,7 @@ namespace VideoSplitter
         {
             InitializeComponent();
             viewModel.SplitModel.SplitRanges.CollectionChanged += SplitRangesOnCollectionChanged;
-            var bindingProxy = (BindingProxy)Application.Current.Resources["GlobalBindingProxy"];
+            var bindingProxy = (BindingProxy)Application.Current.Resources["SplitterGlobalBindingProxy"];
             bindingProxy.Data = viewModel;
         }
 

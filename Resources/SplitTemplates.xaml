@@ -25,7 +25,7 @@
                         RelativePanel.AlignBottomWithPanel="True" RelativePanel.AlignHorizontalCenterWithPanel="True">
                     <TextBlock HorizontalTextAlignment="Center" Text="{x:Bind Duration, Mode=OneWay}" Foreground="Black"/>
                 </Border>
-                <CheckBox IsChecked="{x:Bind IsMultiSelected, Mode=TwoWay}" Margin="4" MinWidth="0" MinHeight="0" Visibility="{Binding Source={StaticResource GlobalBindingProxy}, Path=Data.InMultiSelectMode}"></CheckBox>
+                <CheckBox IsChecked="{x:Bind IsMultiSelected, Mode=TwoWay}" Margin="4" MinWidth="0" MinHeight="0" Visibility="{Binding Source={StaticResource SplitterGlobalBindingProxy}, Path=Data.InMultiSelectMode}"></CheckBox>
             </RelativePanel>
         </Border>
     </DataTemplate>

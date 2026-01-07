@@ -3,8 +3,11 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:videoSplitter="using:VideoSplitter">
-    
-    <videoSplitter:BindingProxy x:Key="GlobalBindingProxy"/>
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ms-appx:///Resources/WinUISharedDictionary.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+    <videoSplitter:BindingProxy x:Key="SplitterGlobalBindingProxy"/>
     <SolidColorBrush Color="#44000000" x:Key="SectionHandleAtRest"></SolidColorBrush>
     <SolidColorBrush Color="#66000000" x:Key="SectionHandlePressed"></SolidColorBrush>
     <SolidColorBrush Color="Black" x:Key="SectionLeftHandleHover"></SolidColorBrush>

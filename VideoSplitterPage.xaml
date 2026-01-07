@@ -33,7 +33,7 @@
                     <RadioButton x:Name="AmountRadioButton" Content="Amount" GroupName="IntervalType" MinWidth="0" Checked="IntervalTypeChecked"/>
                 </StackPanel>
                 <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                    <textToTimeSpan:TimeSpanTextBox x:Name="Duration" VerticalAlignment="Center" Maximum="{Binding Source={StaticResource GlobalBindingProxy}, Path=Data.Duration}"/>
+                    <textToTimeSpan:TimeSpanTextBox x:Name="Duration" VerticalAlignment="Center" Maximum="{Binding Source={StaticResource SplitterGlobalBindingProxy}, Path=Data.Duration}"/>
                     <NumberBox x:Name="Amount" Value="2" SpinButtonPlacementMode="Compact" Minimum="2" Visibility="Collapsed"/>
                     <Button ToolTipService.ToolTip="Done" Margin="10,0,0,0" Click="IntervalSplit">
                         <FontIcon Glyph="&#xE8FB;" />
@@ -159,9 +159,9 @@
                     <AppBarButton.Flyout>
                         <Flyout x:Name="AddFlyout">
                             <StackPanel Orientation="Horizontal">
-                                <textToTimeSpan:TimeSpanTextBox x:Name="AddStart" VerticalAlignment="Center" Maximum="{Binding Source={StaticResource GlobalBindingProxy}, Path=Data.Duration}"/>
+                                <textToTimeSpan:TimeSpanTextBox x:Name="AddStart" VerticalAlignment="Center" Maximum="{Binding Source={StaticResource SplitterGlobalBindingProxy}, Path=Data.Duration}"/>
                                 <TextBlock Text="to" VerticalAlignment="Center" Margin="10,0"/>
-                                <textToTimeSpan:TimeSpanTextBox x:Name="AddEnd" VerticalAlignment="Center" Maximum="{Binding Source={StaticResource GlobalBindingProxy}, Path=Data.Duration}"/>
+                                <textToTimeSpan:TimeSpanTextBox x:Name="AddEnd" VerticalAlignment="Center" Maximum="{Binding Source={StaticResource SplitterGlobalBindingProxy}, Path=Data.Duration}"/>
                                 <Button ToolTipService.ToolTip="Done" Margin="10,0,0,0" Click="AddRange">
                                     <FontIcon Glyph="&#xE8FB;" />
                                 </Button>
@@ -243,10 +243,10 @@
                                 <ColumnDefinition Width="Auto"></ColumnDefinition>
                                 <ColumnDefinition Width="Auto"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
-                            <textToTimeSpan:TimeSpanTextBox Value="{x:Bind Start, Mode=TwoWay}" VerticalAlignment="Center" Maximum="{Binding Source={StaticResource GlobalBindingProxy}, Path=Data.Duration}"/>
+                            <textToTimeSpan:TimeSpanTextBox Value="{x:Bind Start, Mode=TwoWay}" VerticalAlignment="Center" Maximum="{Binding Source={StaticResource SplitterGlobalBindingProxy}, Path=Data.Duration}"/>
                             <TextBlock Grid.Column="1" Text="to" VerticalAlignment="Center" Margin="10,0"/>
                             <textToTimeSpan:TimeSpanTextBox Grid.Column="2" Value="{x:Bind End, Mode=TwoWay}" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                                 Maximum="{Binding Source={StaticResource GlobalBindingProxy}, Path=Data.Duration}"/>
+                                                 Maximum="{Binding Source={StaticResource SplitterGlobalBindingProxy}, Path=Data.Duration}"/>
                             <Button Grid.Column="3" Margin="10,0" ToolTipService.ToolTip="Interval split">
                                 <Button.Flyout>
                                     <Flyout x:Name="RangeIntervalFlyout">
