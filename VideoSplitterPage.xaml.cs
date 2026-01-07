@@ -14,19 +14,14 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
-using Timeline;
+using TextToTimeSpan;
 using VideoSplitterBase;
 using VideoSplitterPage;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.Media;
 using Windows.Media.Core;
-using Windows.Media.Playback;
 using WinUIShared.Controls;
-using WinUIShared.Enums;
+using WinUIShared.Helpers;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -64,7 +59,7 @@ namespace VideoSplitter
             navigateTo = props.TypeToNavigateTo;
             HardwareSelector.SelectedGpu = props.Gpu;
             splitProcessor = new SplitProcessor(ffmpegPath);
-            viewModel.IsAudio = splitProcessor.IsAudio(videoPath);
+            viewModel.IsAudio = Processor.IsAudio(videoPath);
             VideoName.Text = Path.GetFileName(videoPath);
             VideoPlayer.Source = MediaSource.CreateFromUri(new Uri(videoPath));
         }
