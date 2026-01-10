@@ -61,7 +61,7 @@ namespace VideoSplitter
             splitProcessor = new SplitProcessor(ffmpegPath);
             viewModel.IsAudio = Processor.IsAudio(videoPath);
             VideoName.Text = Path.GetFileName(videoPath);
-            VideoPlayer.Source = MediaSource.CreateFromUri(new Uri(videoPath));
+            VideoPlayer.Source = MediaSource.CreateFromUri(new Uri(Processor.GetSafePath(videoPath)));
         }
 
         private void VideoSplitterPage_OnLoaded(object sender, RoutedEventArgs e)
