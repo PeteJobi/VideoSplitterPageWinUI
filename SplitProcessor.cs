@@ -11,6 +11,8 @@ namespace VideoSplitterPage
 {
     public class SplitProcessor(string ffmpegPath) : Processor(ffmpegPath)
     {
+        private const string MapArgs = "-c:a copy -c:s copy -map 0:v? -map 0:a? -map 0:s? -map_chapters 0";
+
         public async Task SpecificSplit(string fileName, string ffmpegPath, SplitRange[] ranges, bool precise)
         {
             var total = ranges.Length;
@@ -27,8 +29,8 @@ namespace VideoSplitterPage
                 leftTextPrimary.Report($"{i}/{total}");
                 rightTextPrimary.Report(ExtendedName(fileName, i.ToString("D3")));
                 var outputArg = $"{folder}\\{ExtendedName(fileName, i.ToString("D3"))}";
-                await (!precise ? StartFfmpegProcess($"-ss {range.Start:hh\\:mm\\:ss\\.fff}  -i \"{fileName}\" -to {range.End:hh\\:mm\\:ss\\.fff} -c copy -map 0 -avoid_negative_ts make_zero \"{outputArg}\"", ProgressEventHandler)
-                        : StartFfmpegTranscodingProcessDefaultQuality([fileName], outputArg, $"-ss {range.Start:hh\\:mm\\:ss\\.fff} -to {range.End:hh\\:mm\\:ss\\.fff}", ProgressEventHandler));
+                await (!precise ? StartFfmpegProcess($"-ss {range.Start:hh\\:mm\\:ss\\.fff}  -i \"{fileName}\" -to {range.End:hh\\:mm\\:ss\\.fff} {MapArgs} -c copy -avoid_negative_ts make_zero \"{outputArg}\"", ProgressEventHandler)
+                        : StartFfmpegTranscodingProcessDefaultQuality([fileName], outputArg, $@"-ss {range.Start:hh\:mm\:ss\.fff} -to {range.End:hh\:mm\:ss\.fff} {MapArgs}", ProgressEventHandler));
                 if (HasBeenKilled()) return;
                 durationElapsed += segmentDuration;
                 continue;
@@ -45,7 +47,7 @@ namespace VideoSplitterPage
         {
             var totalSegments = 0;
             var currentSegment = -1;
-            await StartFfmpegProcess($"-i \"{fileName}\" -c copy -map 0 -segment_time {segmentDuration} -f segment -reset_timestamps 1 \"{GetOutputFolder(fileName)}/{ExtendedName(fileName, "%03d")}\"", (_, currentTime, duration, _) =>
+            await StartFfmpegProcess($"-i \"{fileName}\" {MapArgs} -c copy -segment_time {segmentDuration} -f segment -reset_timestamps 1 \"{GetOutputFolder(fileName)}/{ExtendedName(fileName, "%03d")}\"", (_, currentTime, duration, _) =>
             {
                 if (totalSegments == 0)
                 {
