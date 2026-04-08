@@ -9,7 +9,7 @@ using WinUIShared.Helpers;
 
 namespace VideoSplitterPage
 {
-    public class SplitProcessor(string ffmpegPath) : Processor(ffmpegPath, new FileLogger.FileLogger($"{nameof(ReelBox)}/Split"))
+    public class SplitProcessor(string ffmpegPath) : Processor(ffmpegPath, new FileLogger.FileLogger("ReelBox/Split"))
     {
         private const string MapArgs = "-c:a copy -c:s copy -map 0:v? -map 0:a? -map 0:s? -map_chapters 0";
 
